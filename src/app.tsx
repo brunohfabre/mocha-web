@@ -12,8 +12,11 @@ import {
   SelectValue,
 } from './components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs'
+import { Textarea } from './components/ui/textarea'
 
 type Method = 'get' | 'post' | 'put' | 'patch' | 'delete'
+
+type BodyType = 'none' | 'json'
 
 type Header = {
   id: string
@@ -28,6 +31,8 @@ export function App() {
   const [method, setMethod] = useState<Method>('get')
   const [routeInput, setRouteInput] = useState('')
   const [response, setResponse] = useState<Record<string, any> | null>(null)
+  const [bodyType, setBodyType] = useState<BodyType>('none')
+  const [body, setBody] = useState('')
   const [headers, setHeaders] = useState<Header[]>([])
 
   function sendRequest() {
@@ -44,6 +49,7 @@ export function App() {
       url: routeInput,
       signal: controller.signal,
       headers: finalHeaders,
+      data: body ? JSON.parse(body) : undefined,
     })
       .then(data => {
         setResponse(data)
@@ -96,16 +102,43 @@ export function App() {
 
         <Separator orientation="horizontal" />
 
-        <Tabs className="flex-1 flex flex-col p-4">
+        <Tabs defaultValue="body" className="flex-1 flex flex-col p-4">
           <div>
             <TabsList>
-              <TabsTrigger value="body" disabled>
-                Body
-              </TabsTrigger>
+              <TabsTrigger value="body">Body</TabsTrigger>
 
               <TabsTrigger value="headers">Headers</TabsTrigger>
             </TabsList>
           </div>
+
+          <TabsContent value="body" asChild>
+            <div className="flex-1 flex flex-col gap-4">
+              <div className="flex-1 flex flex-col">
+                {bodyType === 'json' && (
+                  <Textarea
+                    value={body}
+                    onChange={event => setBody(event.target.value)}
+                    placeholder="body"
+                    className="h-full"
+                  />
+                )}
+              </div>
+
+              <Select
+                value={bodyType}
+                onValueChange={value => setBodyType(value as BodyType)}
+              >
+                <SelectTrigger className="w-24">
+                  <SelectValue placeholder="Type" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="none">NONE</SelectItem>
+                  <SelectItem value="json">JSON</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </TabsContent>
 
           <TabsContent value="headers" asChild>
             <div className="flex-1 flex flex-col gap-4">
@@ -192,12 +225,12 @@ export function App() {
       ) : (
         <>
           {response ? (
-            <div className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col overflow-auto">
               <div className="flex p-4">{response.status}</div>
 
               <div className="flex-1 flex overflow-auto p-4">
                 <pre className="text-sm">
-                  <code>{JSON.stringify(response.data, null, 2)}</code>
+                  {JSON.stringify(response.data, null, 2)}
                 </pre>
               </div>
             </div>
