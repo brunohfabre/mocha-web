@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import axios from 'axios'
+import Editor from '@monaco-editor/react'
 
 import { Button } from './components/ui/button'
 import { Input } from './components/ui/input'
@@ -115,11 +116,10 @@ export function App() {
             <div className="flex-1 flex flex-col gap-4">
               <div className="flex-1 flex flex-col">
                 {bodyType === 'json' && (
-                  <Textarea
-                    value={body}
-                    onChange={event => setBody(event.target.value)}
-                    placeholder="body"
-                    className="h-full"
+                  <Editor
+                    defaultLanguage="json"
+                    defaultValue={body}
+                    onChange={value => setBody(value as string)}
                   />
                 )}
               </div>
@@ -228,10 +228,19 @@ export function App() {
             <div className="flex-1 flex flex-col overflow-auto">
               <div className="flex p-4">{response.status}</div>
 
+              <Separator orientation="horizontal" />
+
               <div className="flex-1 flex overflow-auto p-4">
-                <pre className="text-sm">
+                <Editor
+                  defaultLanguage="json"
+                  defaultValue={JSON.stringify(response.data, null, 2)}
+                  options={{
+                    readOnly: true,
+                  }}
+                />
+                {/* <pre className="text-sm">
                   {JSON.stringify(response.data, null, 2)}
-                </pre>
+                </pre> */}
               </div>
             </div>
           ) : (
