@@ -1,5 +1,7 @@
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form'
 
+import axios, { AxiosError, type AxiosResponse } from 'axios'
+import { useAtom } from 'jotai'
 import { X } from 'lucide-react'
 import { z } from 'zod'
 
@@ -16,6 +18,8 @@ import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { zodResolver } from '@hookform/resolvers/zod'
 import Editor from '@monaco-editor/react'
+
+import { controller, loadingAtom, responseAtom } from './state'
 
 const formSchema = z.object({
   method: z.enum(['get', 'post', 'put', 'patch', 'delete']),
@@ -44,8 +48,6 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>
 
-// const controller = new AbortController()
-
 export function Request() {
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -69,24 +71,61 @@ export function Request() {
   const bodyType = useWatch({ control: form.control, name: 'bodyType' })
   const authType = useWatch({ control: form.control, name: 'authType' })
 
+  const [, setLoading] = useAtom(loadingAtom)
+  const [, setResponse] = useAtom(responseAtom)
+
   function sendRequest(data: FormData) {
-    console.log(data)
-    // axios({
-    //   method,
-    //   url: routeInput,
-    //   signal: controller.signal,
-    //   headers: finalHeaders,
-    //   data: body ? JSON.parse(body) : undefined,
-    // })
-    //   .then((data) => {
-    //     setResponse(data)
-    //   })
-    //   .catch((error) => {
-    //     setResponse(error.response)
-    //   })
-    //   .finally(() => {
-    //     setLoading(false)
-    //   })
+    setLoading(true)
+
+    const { method, url, body, headers, params, authType, auth } = data
+
+    const headersObject: Record<string, any> = {}
+    const paramsObject: Record<string, any> = {}
+
+    headers.forEach((header) => {
+      headersObject[header.name] = header.value
+    })
+
+    params.forEach((param) => {
+      paramsObject[param.name] = param.value
+    })
+
+    if (authType === 'bearer') {
+      headersObject.authorization = `Bearer ${auth?.token}`
+    }
+
+    const startTime = Date.now()
+
+    axios({
+      method,
+      url,
+      signal: controller.signal,
+      data: body ? JSON.parse(body) : undefined,
+      headers: headersObject,
+      params: paramsObject,
+    })
+      .then((data) => {
+        const time = Date.now() - startTime
+
+        setResponse({ response: data, time })
+      })
+      .catch((error) => {
+        if (error instanceof AxiosError) {
+          if (error.code === 'ERR_NETWORK') {
+            setResponse(null)
+            return
+          }
+
+          const time = Date.now() - startTime
+
+          setResponse({ response: error.response as AxiosResponse, time })
+        }
+
+        console.log(error)
+      })
+      .finally(() => {
+        setLoading(false)
+      })
   }
 
   return (
@@ -183,7 +222,9 @@ export function Request() {
         <TabsContent value="auth" className="m-0" asChild>
           <div className="flex flex-1 flex-col">
             <div className="flex-1 px-2 py-6">
-              {authType === 'bearer' && <Input placeholder="Token" />}
+              {authType === 'bearer' && (
+                <Input placeholder="Token" {...form.register('auth.token')} />
+              )}
             </div>
 
             <div className="p-2">
