@@ -9,33 +9,63 @@ import {
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { z } from 'zod'
+import { Controller, useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+
+const formSchema = z.object({
+  method: z.enum(['get', 'post', 'put', 'patch', 'delete']),
+  url: z.string(),
+})
+
+type FormData = z.infer<typeof formSchema>
 
 export function Request() {
+  const form = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      method: 'get',
+    },
+  })
+
+  function sendRequest(data: FormData) {
+    console.log(data)
+  }
+
   return (
     <div className="flex-1 flex flex-col">
-      <header className="flex p-2 gap-2">
-        <Select>
-          <SelectTrigger className="min-w-24 w-min">
-            <SelectValue placeholder="Method" />
-          </SelectTrigger>
+      <form
+        className="flex p-2 gap-2"
+        onSubmit={form.handleSubmit(sendRequest)}
+      >
+        <Controller
+          control={form.control}
+          name="method"
+          render={({ field }) => (
+            <Select value={field.value} onValueChange={field.onChange}>
+              <SelectTrigger className="min-w-24 w-min">
+                <SelectValue placeholder="Method" />
+              </SelectTrigger>
 
-          <SelectContent>
-            <SelectItem value="get">GET</SelectItem>
-            <SelectItem value="post">POST</SelectItem>
-            <SelectItem value="put">PUT</SelectItem>
-            <SelectItem value="patch">PATCH</SelectItem>
-            <SelectItem value="delete">DELETE</SelectItem>
-          </SelectContent>
-        </Select>
+              <SelectContent>
+                <SelectItem value="get">GET</SelectItem>
+                <SelectItem value="post">POST</SelectItem>
+                <SelectItem value="put">PUT</SelectItem>
+                <SelectItem value="patch">PATCH</SelectItem>
+                <SelectItem value="delete">DELETE</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        />
 
-        <Input />
+        <Input placeholder="Route" {...form.register('url')} />
 
         <Button type="submit">Send</Button>
-      </header>
+      </form>
 
       <Separator orientation="horizontal" />
 
-      <Tabs defaultValue="account" className="flex-1 flex flex-col">
+      <Tabs defaultValue="body" className="flex-1 flex flex-col">
         <div className="p-2">
           <TabsList>
             <TabsTrigger value="body">Body</TabsTrigger>

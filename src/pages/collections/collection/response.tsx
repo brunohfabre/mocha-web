@@ -12,6 +12,12 @@ const statusType: StatusType = 'server-error'
 
 export function Response() {
   return (
+    <div className="flex-1 flex items-center justify-center">
+      <p className="text-sm">To view the response, send a request.</p>
+    </div>
+  )
+
+  return (
     <div className="flex-1 flex flex-col">
       <header className="flex p-2 h-[52px] items-center gap-2">
         <div
