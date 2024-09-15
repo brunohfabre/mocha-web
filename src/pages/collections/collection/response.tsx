@@ -14,12 +14,13 @@ type StatusType =
   | 'redirection'
   | 'client-error'
   | 'server-error'
+  | 'error'
 
 export function Response() {
   const [loading] = useAtom(loadingAtom)
   const [response] = useAtom(responseAtom)
 
-  const startOfStatus = response?.response.status.toString()[0]
+  const startOfStatus = response?.response?.status.toString()[0]
   const statusType: StatusType =
     startOfStatus === '1'
       ? 'informational'
@@ -29,7 +30,9 @@ export function Response() {
       ? 'redirection'
       : startOfStatus === '4'
       ? 'client-error'
-      : 'server-error'
+      : startOfStatus === '5'
+      ? 'server-error'
+      : 'error'
 
   function handleCancelRequest() {
     controller.abort()
@@ -66,9 +69,10 @@ export function Response() {
             statusType === 'redirection' && 'bg-blue-500',
             statusType === 'client-error' && 'bg-red-500',
             statusType === 'server-error' && 'bg-orange-500',
+            statusType === 'error' && 'bg-red-500',
           )}
         >
-          {response?.response.status}
+          {response?.response?.status ?? 'Error'}
         </div>
 
         <div className="flex h-7 items-center rounded-md bg-gray-100 px-2.5 text-sm font-semibold">
@@ -82,7 +86,13 @@ export function Response() {
 
       <Separator orientation="horizontal" />
 
-      {response?.response.config.headers.Accept?.toString().includes(
+      {statusType === 'error' && (
+        <div className="flex flex-1 items-center justify-center p-4">
+          <p className="text-sm">Error: Couldn&apos;t connect to server</p>
+        </div>
+      )}
+
+      {response?.response?.config.headers.Accept?.toString().includes(
         'application/json',
       ) && (
         <div className="flex-1">

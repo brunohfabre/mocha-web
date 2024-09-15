@@ -111,12 +111,12 @@ export function Request() {
       })
       .catch((error) => {
         if (error instanceof AxiosError) {
+          const time = Date.now() - startTime
+
           if (error.code === 'ERR_NETWORK') {
-            setResponse(null)
+            setResponse({ response: null, time })
             return
           }
-
-          const time = Date.now() - startTime
 
           setResponse({ response: error.response as AxiosResponse, time })
         }
@@ -154,7 +154,7 @@ export function Request() {
           )}
         />
 
-        <Input placeholder="Route" {...form.register('url')} />
+        <Input placeholder="Enter URL" {...form.register('url')} />
 
         <Button type="submit">Send</Button>
       </form>

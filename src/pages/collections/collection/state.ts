@@ -6,6 +6,6 @@ export const controller = new AbortController()
 export const loadingAtom = atom(false)
 
 export const responseAtom = atom<{
-  response: AxiosResponse
+  response: AxiosResponse | null
   time: number
 } | null>(null)
