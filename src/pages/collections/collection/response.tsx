@@ -75,7 +75,7 @@ export function Response() {
           {response?.response?.status ?? 'Error'}
         </div>
 
-        <div className="flex h-7 items-center rounded-md bg-gray-100 px-2.5 text-sm font-semibold">
+        <div className="flex h-7 items-center rounded-md bg-muted px-2.5 text-sm font-semibold">
           {response?.time}ms
         </div>
 
@@ -101,7 +101,9 @@ export function Response() {
             value={JSON.stringify(response.response.data, null, 2)}
             options={{
               readOnly: true,
+              tabSize: 2,
             }}
+            theme="vs-dark"
           />
         </div>
       )}

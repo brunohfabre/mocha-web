@@ -17,7 +17,7 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { zodResolver } from '@hookform/resolvers/zod'
-import Editor from '@monaco-editor/react'
+import { Editor } from '@monaco-editor/react'
 
 import { controller, loadingAtom, responseAtom } from './state'
 
@@ -183,6 +183,10 @@ export function Request() {
                       defaultLanguage="json"
                       value={field.value}
                       onChange={(value) => field.onChange(value)}
+                      options={{
+                        tabSize: 2,
+                      }}
+                      theme="vs-dark"
                     />
                   )}
                 />
