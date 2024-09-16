@@ -120,8 +120,6 @@ export function Request() {
 
           setResponse({ response: error.response as AxiosResponse, time })
         }
-
-        console.log(error)
       })
       .finally(() => {
         setLoading(false)

@@ -1,10 +1,12 @@
+import { RouterProvider } from 'react-router-dom'
+
 import { ThemeProvider } from './components/theme-provider'
-import { Collection } from './pages/collections/collection'
+import { router } from './routes'
 
 export function App() {
   return (
     <ThemeProvider defaultTheme="dark" storageKey="mocha.ui-theme">
-      <Collection />
+      <RouterProvider router={router} />
     </ThemeProvider>
   )
 }
