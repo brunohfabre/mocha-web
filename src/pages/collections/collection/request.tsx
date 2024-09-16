@@ -210,7 +210,7 @@ export function Request() {
 
                     <SelectContent>
                       <SelectItem value="none">None</SelectItem>
-                      <SelectItem value="json">Json</SelectItem>
+                      <SelectItem value="json">JSON</SelectItem>
                     </SelectContent>
                   </Select>
                 )}
