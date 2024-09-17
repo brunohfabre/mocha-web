@@ -19,7 +19,7 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>
 
-export function Verification() {
+export function VerifyAccount() {
   const navigate = useNavigate()
 
   const form = useForm<FormData>({

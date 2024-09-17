@@ -5,7 +5,7 @@ import { DefaultLayout } from './components/layouts/default-layout'
 import { Collection } from './pages/collections/collection'
 import { NotFound } from './pages/not-found'
 import { SignIn } from './pages/sign-in'
-import { Verification } from './pages/verification'
+import { VerifyAccount } from './pages/verify-account'
 
 export const router = createBrowserRouter([
   {
@@ -16,8 +16,8 @@ export const router = createBrowserRouter([
         element: <SignIn />,
       },
       {
-        path: '/verification',
-        element: <Verification />,
+        path: '/verify-account',
+        element: <VerifyAccount />,
       },
     ],
   },
