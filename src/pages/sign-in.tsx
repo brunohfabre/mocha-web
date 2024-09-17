@@ -37,7 +37,7 @@ export function SignIn() {
         email,
       })
 
-      navigate('/verification')
+      navigate('/verify-account')
     } finally {
       setLoading(false)
     }
