@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useNavigate } from 'react-router-dom'
 
 import { LoaderCircle } from 'lucide-react'
 import { z } from 'zod'
 
+import LogoImage from '@/assets/logo.png'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -18,6 +20,8 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>
 
 export function Verification() {
+  const navigate = useNavigate()
+
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
   })
@@ -42,8 +46,14 @@ export function Verification() {
     }
   }
 
+  function handleBack() {
+    navigate(-1)
+  }
+
   return (
     <div className="mx-auto flex max-w-96 flex-1 flex-col justify-center gap-8">
+      <img src={LogoImage} alt="Mocha" className="w-10" />
+
       <h1 className="text-2xl font-semibold">Verify account</h1>
 
       <form
@@ -68,6 +78,10 @@ export function Verification() {
           )}
         </Button>
       </form>
+
+      <Button type="button" variant="ghost" onClick={handleBack}>
+        Back to sign in
+      </Button>
     </div>
   )
 }
