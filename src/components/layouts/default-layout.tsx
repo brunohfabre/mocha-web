@@ -1,9 +1,14 @@
 import { useEffect } from 'react'
 import { Navigate, Outlet, useNavigate } from 'react-router-dom'
 
+import { LogOut } from 'lucide-react'
+
 import { api } from '@/lib/api'
 import { CreateName } from '@/pages/create-name'
 import { useAuthStore } from '@/stores/auth-store'
+
+import { Button } from '../ui/button'
+import { Separator } from '../ui/separator'
 
 export function DefaultLayout() {
   const navigate = useNavigate()
@@ -11,6 +16,7 @@ export function DefaultLayout() {
   const token = useAuthStore((state) => state.token)
   const user = useAuthStore((state) => state.user)
   const setUser = useAuthStore((state) => state.setUser)
+  const clearCredentials = useAuthStore((state) => state.clearCredentials)
 
   useEffect(() => {
     async function loadUser() {
@@ -21,6 +27,10 @@ export function DefaultLayout() {
 
     loadUser()
   }, [setUser, navigate])
+
+  function handleSignOut() {
+    clearCredentials()
+  }
 
   if (!token) {
     return <Navigate to="/sign-in" replace />
@@ -38,6 +48,14 @@ export function DefaultLayout() {
 
   return (
     <div className="flex h-screen w-full antialiased">
+      <div className="flex items-end p-2">
+        <Button variant="outline" size="icon" onClick={handleSignOut}>
+          <LogOut className="size-4" />
+        </Button>
+      </div>
+
+      <Separator orientation="vertical" />
+
       <Outlet />
     </div>
   )
