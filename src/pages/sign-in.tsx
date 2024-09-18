@@ -37,7 +37,11 @@ export function SignIn() {
         email,
       })
 
-      navigate('/verify-account')
+      navigate('/verify-account', {
+        state: {
+          email,
+        },
+      })
     } finally {
       setLoading(false)
     }

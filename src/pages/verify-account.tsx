@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import { LoaderCircle } from 'lucide-react'
 import { z } from 'zod'
@@ -21,6 +21,9 @@ type FormData = z.infer<typeof formSchema>
 
 export function VerifyAccount() {
   const navigate = useNavigate()
+  const location = useLocation()
+
+  const state = location.state as { email?: string }
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -30,6 +33,14 @@ export function VerifyAccount() {
 
   const [loading, setLoading] = useState(false)
 
+  useEffect(() => {
+    if (!state?.email) {
+      navigate('/sign-in', {
+        replace: true,
+      })
+    }
+  }, [state, navigate])
+
   async function verifyCode(data: FormData) {
     try {
       setLoading(true)
@@ -37,6 +48,7 @@ export function VerifyAccount() {
       const { code } = data
 
       const response = await api.post('/sessions', {
+        email: state?.email,
         code,
       })
 
