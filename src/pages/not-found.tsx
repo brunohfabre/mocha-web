@@ -9,5 +9,9 @@ export function NotFound() {
     return <Navigate to="/sign-in" replace />
   }
 
-  return <Navigate to="/" />
+  return (
+    <div className="flex h-screen w-full items-center justify-center antialiased">
+      <p>Not found</p>
+    </div>
+  )
 }

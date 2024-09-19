@@ -22,6 +22,7 @@ export function CreateName() {
   const navigate = useNavigate()
 
   const user = useAuthStore((state) => state.user)
+  const setUser = useAuthStore((state) => state.setUser)
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -35,18 +36,20 @@ export function CreateName() {
 
       const { name } = data
 
-      await api.put(`/users/${user?.id}`, {
+      await api.patch(`/users/${user?.id}/name`, {
         name,
       })
 
-      navigate('/verification')
+      setUser({ ...user!, name })
+
+      navigate('/')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="mx-auto flex h-screen max-w-96 flex-1 flex-col justify-center gap-8">
+    <div className="mx-auto flex h-screen w-full max-w-96 flex-1 flex-col justify-center gap-8">
       <h1 className="text-2xl font-semibold">Create name</h1>
 
       <form
@@ -54,7 +57,7 @@ export function CreateName() {
         className="flex flex-col gap-8"
       >
         <div className="flex flex-col gap-1">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="name">Name</Label>
           <Input id="name" placeholder="Name" {...form.register('name')} />
           {form.formState.errors.name?.message && (
             <span className="text-sm text-red-500">
