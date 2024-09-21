@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form'
 
 import axios, { AxiosError, type AxiosResponse } from 'axios'
@@ -49,6 +50,8 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>
 
 export function Request() {
+  const editorRef = useRef(null)
+
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -126,6 +129,17 @@ export function Request() {
       })
   }
 
+  function handleEditorDidMount(editor: any) {
+    editorRef.current = editor
+
+    window.addEventListener('resize', () => {
+      editor.layout({
+        width: 'auto',
+        height: 'auto',
+      })
+    })
+  }
+
   return (
     <div className="flex flex-1 flex-col">
       <form
@@ -184,6 +198,7 @@ export function Request() {
                       options={{
                         tabSize: 2,
                       }}
+                      onMount={handleEditorDidMount}
                       theme="vs-dark"
                     />
                   )}

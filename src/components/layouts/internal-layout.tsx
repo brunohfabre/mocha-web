@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom'
+import { Link, Outlet } from 'react-router-dom'
 
 import { LogOut } from 'lucide-react'
 
@@ -18,9 +18,9 @@ export function InternalLayout() {
   return (
     <div className="flex h-screen w-full flex-col antialiased">
       <header className="flex items-center justify-between px-2">
-        <div className="flex size-[52px] items-center justify-center">
+        <Link className="flex size-[52px] items-center justify-center" to="/">
           <img src={LogoImage} alt="Mocha" className="w-9" />
-        </div>
+        </Link>
 
         <Button variant="outline" size="icon" onClick={handleSignOut}>
           <LogOut className="size-4" />

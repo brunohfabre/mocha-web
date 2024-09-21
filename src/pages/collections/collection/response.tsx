@@ -1,3 +1,5 @@
+import { useRef } from 'react'
+
 import { useAtom } from 'jotai'
 import { LoaderCircle } from 'lucide-react'
 
@@ -17,6 +19,8 @@ type StatusType =
   | 'error'
 
 export function Response() {
+  const editorRef = useRef(null)
+
   const [loading] = useAtom(loadingAtom)
   const [response] = useAtom(responseAtom)
 
@@ -36,6 +40,17 @@ export function Response() {
 
   function handleCancelRequest() {
     controller.abort()
+  }
+
+  function handleEditorDidMount(editor: any) {
+    editorRef.current = editor
+
+    window.addEventListener('resize', () => {
+      editor.layout({
+        width: 'auto',
+        height: 'auto',
+      })
+    })
   }
 
   if (!loading && !response) {
@@ -103,6 +118,7 @@ export function Response() {
               readOnly: true,
               tabSize: 2,
             }}
+            onMount={handleEditorDidMount}
             theme="vs-dark"
           />
         </div>
