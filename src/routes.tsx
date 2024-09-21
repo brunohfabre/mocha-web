@@ -4,8 +4,10 @@ import { AppLayout } from './components/layouts/app-layout'
 import { AuthLayout } from './components/layouts/auth-layout'
 import { InternalLayout } from './components/layouts/internal-layout'
 import { Protected } from './components/layouts/protected'
+import { Collections } from './pages/collections'
 import { Collection } from './pages/collections/collection'
 import { CreateName } from './pages/create-name'
+import { Home } from './pages/home'
 import { NotFound } from './pages/not-found'
 import { SignIn } from './pages/sign-in'
 import { VerifyAccount } from './pages/verify-account'
@@ -31,10 +33,15 @@ export const router = createBrowserRouter([
         element: <AppLayout />,
         children: [
           {
-            path: '/collections/:id',
+            path: '/',
+            element: <Home />,
           },
           {
-            path: '/',
+            path: '/collections',
+            element: <Collections />,
+          },
+          {
+            path: '/collections/:id',
             element: <Collection />,
           },
         ],

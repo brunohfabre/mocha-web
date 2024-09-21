@@ -4,6 +4,7 @@ import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import LogoImage from '@/assets/logo.png'
 import { api } from '@/lib/api'
 import { useAuthStore } from '@/stores/auth-store'
+import { useOrganizationStore } from '@/stores/organization-store'
 
 export function Protected() {
   const firstRenderRef = useRef(true)
@@ -14,17 +15,23 @@ export function Protected() {
   const token = useAuthStore((state) => state.token)
   const setUser = useAuthStore((state) => state.setUser)
 
+  const setOrganization = useOrganizationStore((state) => state.setOrganization)
+
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     async function loadUserData() {
-      const response = await api.get('/me')
+      const meResponse = await api.get('/me')
 
-      setUser(response.data.user)
+      setUser(meResponse.data.user)
 
-      if (!response.data.user.name) {
+      if (!meResponse.data.user.name) {
         navigate('/create-name')
       }
+
+      const organizationsResponse = await api.get('/organizations')
+
+      setOrganization(organizationsResponse.data.organizations[0])
 
       setIsLoading(false)
     }
@@ -34,7 +41,7 @@ export function Protected() {
 
       loadUserData()
     }
-  }, [token, setUser, navigate, location.pathname])
+  }, [token, setUser, navigate, location.pathname, setOrganization])
 
   if (!token) {
     return <Navigate to="/sign-in" replace />
