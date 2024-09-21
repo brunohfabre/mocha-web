@@ -31,6 +31,9 @@ export const router = createBrowserRouter([
         element: <AppLayout />,
         children: [
           {
+            path: '/collections/:id',
+          },
+          {
             path: '/',
             element: <Collection />,
           },

@@ -1,8 +1,11 @@
 import { useState } from 'react'
 import { DndProvider } from 'react-dnd'
 
+import { LoaderCircle } from 'lucide-react'
+
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { api } from '@/lib/api'
 import { type NodeModel } from '@minoru/react-dnd-treeview'
 
 import { CreateFolderModal } from './create-folder-modal'
@@ -84,10 +87,26 @@ export const items = {
 
 export function Sidebar() {
   const [treeData, setTreeData] = useState<NodeModel[]>(initialData)
+  const [loading, setLoading] = useState(false)
+
   function handleDrop(newTreeData: NodeModel[]) {
     console.log(newTreeData)
 
     setTreeData(newTreeData)
+  }
+
+  async function createRequest() {
+    try {
+      setLoading(true)
+
+      const response = await api.post(`/collections/123/requests`, {
+        type: 'REQUEST',
+      })
+
+      console.log(response.data)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -99,8 +118,12 @@ export function Sidebar() {
       <Separator />
 
       <div className="flex flex-1 flex-col items-center justify-center gap-3">
-        <Button type="button" variant="outline">
-          Create request
+        <Button type="button" variant="outline" onClick={createRequest}>
+          {loading ? (
+            <LoaderCircle className="size-4 animate-spin" />
+          ) : (
+            'Create request'
+          )}
         </Button>
 
         <span className="text-sm">or</span>

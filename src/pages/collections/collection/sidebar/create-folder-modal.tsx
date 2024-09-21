@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { api } from '@/lib/api'
 import { zodResolver } from '@hookform/resolvers/zod'
 
 const formSchema = z.object({
@@ -38,11 +39,18 @@ export function CreateFolderModal({
 
   const [loading, setLoading] = useState(false)
 
-  function createFolder(data: FormData) {
+  async function createFolder(data: FormData) {
     try {
-      console.log(data)
-
       setLoading(true)
+
+      const { name } = data
+
+      const response = await api.post('/requests', {
+        type: 'FOLDER',
+        name,
+      })
+
+      console.log(response.data)
     } finally {
       setLoading(false)
     }
