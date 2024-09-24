@@ -6,6 +6,7 @@ import { InternalLayout } from './components/layouts/internal-layout'
 import { Protected } from './components/layouts/protected'
 import { Collections } from './pages/collections'
 import { Collection } from './pages/collections/collection'
+import { HttpRequest } from './pages/collections/collection/http-request'
 import { CreateName } from './pages/create-name'
 import { Home } from './pages/home'
 import { NotFound } from './pages/not-found'
@@ -41,8 +42,14 @@ export const router = createBrowserRouter([
             element: <Collections />,
           },
           {
-            path: '/collections/:id',
+            path: 'collections/:collectionId',
             element: <Collection />,
+            children: [
+              {
+                path: 'requests/:requestId',
+                element: <HttpRequest />,
+              },
+            ],
           },
         ],
       },

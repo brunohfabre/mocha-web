@@ -83,7 +83,7 @@ export function Collections() {
         </header>
 
         {data?.length === 0 ? (
-          <Empty />
+          <Empty title="No collections found" />
         ) : (
           <div className="grid grid-cols-4 gap-2">
             {data?.map((item) => (

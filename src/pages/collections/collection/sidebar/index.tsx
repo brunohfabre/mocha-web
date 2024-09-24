@@ -20,100 +20,41 @@ import { CustomDragPreview } from './custom-drag-preview'
 import { CustomNode } from './custom-node'
 import { Placeholder } from './placeholder'
 
-const initialData = [
-  {
-    id: 1,
-    parent: 0,
-    droppable: true,
-    text: '',
-  },
-  {
-    id: 2,
-    parent: 1,
-    text: '',
-  },
-  {
-    id: 3,
-    parent: 1,
-    text: '',
-  },
-  {
-    id: 4,
-    parent: 0,
-    droppable: true,
-    text: '',
-  },
-  {
-    id: 5,
-    parent: 4,
-    droppable: true,
-    text: '',
-  },
-  {
-    id: 6,
-    parent: 5,
-    text: '',
-  },
-]
-
-export const items = {
-  1: {
-    id: '1',
-    method: 'GET',
-    type: 'FOLDER',
-    name: 'Folder 1',
-  },
-  2: {
-    id: '2',
-    method: 'GET',
-    type: 'REQUEST',
-    name: 'get 1',
-  },
-  3: {
-    id: '3',
-    method: 'POST',
-    type: 'REQUEST',
-    name: 'post 1',
-  },
-  4: {
-    id: '4',
-    method: 'GET',
-    type: 'FOLDER',
-    name: 'Folder 2',
-  },
-  5: {
-    id: '5',
-    method: 'GET',
-    type: 'FOLDER',
-    name: 'Folder 3',
-  },
-  6: {
-    id: '6',
-    method: 'PUT',
-    type: 'REQUEST',
-    name: 'put 1',
-  },
+type Request = {
+  id: string
+  parentId?: string
+  type: string
+  method: string
+  url: string
+  name: string
 }
 
-type Collection = {
+export type Collection = {
   id: string
   name: string
-  requests: { id: string }[]
+  requests: Request[]
 }
 
 export function Sidebar() {
-  const { id } = useParams<{ id: string }>()
+  const { collectionId } = useParams<{ collectionId: string }>()
 
-  const [treeData, setTreeData] = useState<NodeModel[]>(initialData)
   const [loading, setLoading] = useState(false)
 
   const queryClient = useQueryClient()
-  const collection = queryClient.getQueryData<Collection>(['collections', id])
+  const collection = queryClient.getQueryData<Collection>([
+    'collections',
+    collectionId,
+  ])
+
+  const treeData =
+    collection?.requests.map((request) => ({
+      id: request.id,
+      parent: request.parentId ?? 0,
+      text: '',
+    })) ?? []
 
   function handleDrop(newTreeData: NodeModel[]) {
     console.log(newTreeData)
-
-    setTreeData(newTreeData)
   }
 
   async function createRequest() {
@@ -127,7 +68,13 @@ export function Sidebar() {
         },
       )
 
-      console.log(response.data)
+      queryClient.setQueryData(
+        ['collections', collectionId],
+        (prevState: Collection) => ({
+          ...prevState,
+          requests: [...prevState.requests, response.data.request],
+        }),
+      )
     } finally {
       setLoading(false)
     }

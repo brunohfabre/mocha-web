@@ -1,3 +1,5 @@
+import { useNavigate, useParams } from 'react-router-dom'
+
 import clsx from 'clsx'
 import { ChevronRight } from 'lucide-react'
 
@@ -9,8 +11,9 @@ import {
 } from '@/components/ui/context-menu'
 import { cn } from '@/lib/utils'
 import { NodeModel } from '@minoru/react-dnd-treeview'
+import { useQueryClient } from '@tanstack/react-query'
 
-import { items } from '.'
+import type { Collection } from '.'
 
 interface CustomNodeProps {
   node: NodeModel<any>
@@ -19,7 +22,19 @@ interface CustomNodeProps {
 }
 
 export function CustomNode({ node, isOpen, onToggle }: CustomNodeProps) {
-  const item = items[node.id]
+  const { collectionId, requestId } = useParams<{
+    collectionId: string
+    requestId: string
+  }>()
+  const navigate = useNavigate()
+
+  const queryClient = useQueryClient()
+  const collection = queryClient.getQueryData<Collection>([
+    'collections',
+    collectionId,
+  ])
+
+  const item = collection?.requests.find((request) => request.id === node.id)
 
   function handleToggle(e: MouseEvent) {
     e.stopPropagation()
@@ -27,20 +42,27 @@ export function CustomNode({ node, isOpen, onToggle }: CustomNodeProps) {
     onToggle(node.id)
   }
 
+  function handleSelectRequest() {
+    navigate(`/collections/${collectionId}/requests/${node.id}`)
+  }
+
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
         <div
-          className="flex h-9 flex-1 cursor-pointer items-center gap-2 rounded-md pl-2 transition-colors hover:bg-muted"
+          className={cn(
+            'flex h-9 flex-1 cursor-pointer items-center gap-2 rounded-md pl-2 transition-colors hover:bg-muted',
+            requestId === node.id && 'bg-muted',
+          )}
           onClick={(event: any) =>
-            node.droppable ? handleToggle(event) : undefined
+            node.droppable ? handleToggle(event) : handleSelectRequest()
           }
         >
           {node.droppable && (
             <ChevronRight className={cn('size-3', isOpen && 'rotate-90')} />
           )}
 
-          {item.type === 'REQUEST' && (
+          {item?.type === 'REQUEST' && (
             <span
               className={clsx(
                 'ml-1 w-8 text-[10px] font-bold leading-none',
@@ -51,16 +73,16 @@ export function CustomNode({ node, isOpen, onToggle }: CustomNodeProps) {
                 item.method === 'DELETE' && 'text-red-500',
               )}
             >
-              {item.method === 'DELETE' ? 'DEL' : item.method}
+              {item?.method === 'DELETE' ? 'DEL' : item.method}
             </span>
           )}
 
-          <span className="text-sm">{item.name}</span>
+          <span className="text-sm">{item?.name}</span>
         </div>
       </ContextMenuTrigger>
 
       <ContextMenuContent>
-        <ContextMenuItem>{item.name}</ContextMenuItem>
+        <ContextMenuItem>{item?.name}</ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
   )
