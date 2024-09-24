@@ -1,5 +1,6 @@
-import { useState, type ReactNode } from 'react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useNavigate } from 'react-router-dom'
 
 import { LoaderCircle } from 'lucide-react'
 import { z } from 'zod'
@@ -11,12 +12,15 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { api } from '@/lib/api'
+import { useOrganizationStore } from '@/stores/organization-store'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useQueryClient } from '@tanstack/react-query'
+
+import type { Collection } from '.'
 
 const formSchema = z.object({
   name: z.string().min(1),
@@ -24,50 +28,66 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>
 
-interface CreateFolderModalProps {
-  children: ReactNode
-  parentId?: string
+interface CreateCollectionProps {
+  open: boolean
+  onOpenChange: (value: boolean) => void
 }
 
-export function CreateFolderModal({
-  children,
-  parentId,
-}: CreateFolderModalProps) {
+export function CreateCollection({
+  open,
+  onOpenChange,
+}: CreateCollectionProps) {
+  const navigate = useNavigate()
+
+  const organization = useOrganizationStore((state) => state.organization)
+
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
   })
 
   const [loading, setLoading] = useState(false)
 
-  async function createFolder(data: FormData) {
+  const queryClient = useQueryClient()
+
+  async function createCollection(data: FormData) {
     try {
       setLoading(true)
 
       const { name } = data
 
-      const response = await api.post('/requests', {
-        type: 'FOLDER',
-        name,
-      })
+      const response = await api.post(
+        `/organizations/${organization?.id}/collections`,
+        {
+          name,
+        },
+      )
 
-      console.log(response.data)
+      queryClient.setQueryData(['collections'], (prevState: Collection[]) => [
+        ...prevState,
+        response.data.collection,
+      ])
+
+      navigate(`/collections/${response.data.collection.id}`)
     } finally {
       setLoading(false)
     }
   }
 
-  return (
-    <Dialog>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+  function handleCloseModal() {
+    onOpenChange(false)
+    form.reset()
+  }
 
+  return (
+    <Dialog open={open} onOpenChange={handleCloseModal}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create folder</DialogTitle>
+          <DialogTitle>Create collection</DialogTitle>
         </DialogHeader>
 
         <form
           className="mt-4 flex flex-col gap-8"
-          onSubmit={form.handleSubmit(createFolder)}
+          onSubmit={form.handleSubmit(createCollection)}
         >
           <div className="flex flex-col gap-1">
             <Label htmlFor="name">Name</Label>
@@ -75,7 +95,7 @@ export function CreateFolderModal({
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline">
+            <Button type="button" variant="outline" onClick={handleCloseModal}>
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
