@@ -1,26 +1,22 @@
 import { useState } from 'react'
-import { DndProvider } from 'react-dnd'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 
 import { LoaderCircle } from 'lucide-react'
 
-import { Button } from '@/components/ui/button'
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from '@/components/ui/context-menu'
 import { Separator } from '@/components/ui/separator'
 import { api } from '@/lib/api'
-import {
-  getBackendOptions,
-  MultiBackend,
-  Tree,
-  type NodeModel,
-} from '@minoru/react-dnd-treeview'
 import { useQueryClient } from '@tanstack/react-query'
 
 import { CreateFolder } from './create-folder'
-import { CustomDragPreview } from './custom-drag-preview'
-import { CustomNode } from './custom-node'
-import { Placeholder } from './placeholder'
+import { Item } from './item'
 
-type Request = {
+export type Request = {
   id: string
   parentId?: string
   type: string
@@ -36,9 +32,15 @@ export type Collection = {
 }
 
 export function Sidebar() {
-  const { collectionId } = useParams<{ collectionId: string }>()
+  const { collectionId, requestId } = useParams<{
+    collectionId: string
+    requestId: string
+  }>()
+  const navigate = useNavigate()
 
   const [loading, setLoading] = useState(false)
+  const [createFolderVisible, setCreateFolderVisible] = useState(false)
+  const [createFolderParentId, setCreateFolderParentId] = useState<string>()
 
   const queryClient = useQueryClient()
   const collection = queryClient.getQueryData<Collection>([
@@ -46,27 +48,14 @@ export function Sidebar() {
     collectionId,
   ])
 
-  const treeData =
-    collection?.requests.map((request) => ({
-      id: request.id,
-      parent: request.parentId ?? 0,
-      text: '',
-    })) ?? []
-
-  function handleDrop(newTreeData: NodeModel[]) {
-    console.log(newTreeData)
-  }
-
-  async function createRequest() {
+  async function createRequest(parentId?: string) {
     try {
       setLoading(true)
 
-      const response = await api.post(
-        `/collections/${collection?.id}/requests`,
-        {
-          type: 'REQUEST',
-        },
-      )
+      const response = await api.post(`/collections/${collectionId}/requests`, {
+        type: 'REQUEST',
+        parentId,
+      })
 
       queryClient.setQueryData(
         ['collections', collectionId],
@@ -75,73 +64,106 @@ export function Sidebar() {
           requests: [...prevState.requests, response.data.request],
         }),
       )
+
+      navigate(
+        `/collections/${collectionId}/requests/${response.data.request.id}`,
+      )
     } finally {
       setLoading(false)
     }
   }
 
+  function handleCloseFolderModal() {
+    setCreateFolderParentId('')
+    setCreateFolderVisible(false)
+  }
+
+  async function deleteRequest(id: string) {
+    try {
+      setLoading(true)
+
+      const response = await api.delete(
+        `/collections/${collectionId}/requests/${id}`,
+      )
+
+      queryClient.setQueryData(
+        ['collections', collectionId],
+        (prevState: Collection) => ({
+          ...prevState,
+          requests: prevState.requests.filter(
+            (request) => !response.data.ids.includes(request.id),
+          ),
+        }),
+      )
+
+      if (response.data.ids.includes(requestId)) {
+        navigate(`/collections/${collectionId}`)
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const itemsToRender = collection?.requests.filter((item) => !item.parentId)
+
   return (
-    <div className="flex w-80 flex-col">
-      <div className="flex h-[52px] items-center px-4">
-        <span className="text-sm font-semibold">{collection?.name}</span>
-      </div>
-
-      <Separator />
-      {collection?.requests.length ? (
-        <div className="flex flex-1 flex-col py-2 pr-2">
-          <DndProvider backend={MultiBackend} options={getBackendOptions()}>
-            <Tree
-              tree={treeData}
-              rootId={0}
-              render={(node, { isOpen, onToggle }) => (
-                <CustomNode node={node} isOpen={isOpen} onToggle={onToggle} />
-              )}
-              classes={{
-                container: 'flex-1 pl-2',
-                draggingSource: 'opacity-30',
-                placeholder: 'relative',
-              }}
-              dragPreviewRender={(monitorProps) => (
-                <CustomDragPreview monitorProps={monitorProps} />
-              )}
-              onDrop={handleDrop}
-              sort={false}
-              insertDroppableFirst={false}
-              canDrop={(_, { dragSource, dropTargetId }) => {
-                if (dragSource?.parent === dropTargetId) {
-                  return true
-                }
-              }}
-              dropTargetOffset={10}
-              placeholderRender={() => <Placeholder />}
-            />
-          </DndProvider>
-        </div>
-      ) : (
-        <div className="flex flex-1 flex-col items-center justify-center gap-3">
-          <Button type="button" variant="outline" onClick={createRequest}>
-            {loading ? (
-              <LoaderCircle className="size-4 animate-spin" />
-            ) : (
-              'Create request'
-            )}
-          </Button>
-
-          <span className="text-sm">or</span>
-
-          <CreateFolder>
-            <Button type="button" variant="outline">
-              Create folder
-            </Button>
-          </CreateFolder>
+    <>
+      {loading && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50">
+          <LoaderCircle className="animate-spin" />
         </div>
       )}
 
-      {/* <Separator />
+      <CreateFolder
+        open={createFolderVisible}
+        onOpenChange={handleCloseFolderModal}
+        parentId={createFolderParentId}
+      />
 
-      <div className="h-[52px]">
-        <span>environments</span>
-      </div> */}
-    </div>
+      <div className="flex w-80 flex-col">
+        <div className="flex h-[52px] items-center px-4">
+          <span className="text-sm font-semibold">{collection?.name}</span>
+        </div>
+
+        <Separator />
+
+        <ContextMenu>
+          <ContextMenuTrigger asChild>
+            {collection?.requests.length ? (
+              <div className="flex flex-1 flex-col p-2">
+                {itemsToRender?.map((item) => (
+                  <Item
+                    key={item.id}
+                    item={item}
+                    items={collection.requests}
+                    createRequest={createRequest}
+                    createFolder={(parentId) => {
+                      setCreateFolderParentId(parentId)
+                      setCreateFolderVisible(true)
+                    }}
+                    deleteRequest={deleteRequest}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-1 items-center justify-center p-4">
+                <span className="text-sm text-muted-foreground">
+                  No data found
+                </span>
+              </div>
+            )}
+          </ContextMenuTrigger>
+
+          <ContextMenuContent>
+            <ContextMenuItem onClick={() => createRequest()}>
+              Create request
+            </ContextMenuItem>
+            <ContextMenuItem onClick={() => setCreateFolderVisible(true)}>
+              Create folder
+            </ContextMenuItem>
+          </ContextMenuContent>
+        </ContextMenu>
+      </div>
+    </>
   )
 }

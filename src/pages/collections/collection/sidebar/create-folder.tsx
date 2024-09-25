@@ -1,5 +1,6 @@
-import { useState, type ReactNode } from 'react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useParams } from 'react-router-dom'
 
 import { LoaderCircle } from 'lucide-react'
 import { z } from 'zod'
@@ -11,12 +12,14 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { api } from '@/lib/api'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useQueryClient } from '@tanstack/react-query'
+
+import type { Collection } from '.'
 
 const formSchema = z.object({
   name: z.string().min(1),
@@ -25,16 +28,31 @@ const formSchema = z.object({
 type FormData = z.infer<typeof formSchema>
 
 interface CreateFolderProps {
-  children: ReactNode
+  open: boolean
+  onOpenChange: (data: boolean) => void
+
   parentId?: string
 }
 
-export function CreateFolder({ children, parentId }: CreateFolderProps) {
+export function CreateFolder({
+  open,
+  onOpenChange,
+  parentId,
+}: CreateFolderProps) {
+  const { collectionId } = useParams<{ collectionId: string }>()
+
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
   })
 
+  const queryClient = useQueryClient()
+
   const [loading, setLoading] = useState(false)
+
+  function handleClose() {
+    onOpenChange(false)
+    form.reset()
+  }
 
   async function createFolder(data: FormData) {
     try {
@@ -42,21 +60,28 @@ export function CreateFolder({ children, parentId }: CreateFolderProps) {
 
       const { name } = data
 
-      const response = await api.post('/requests', {
+      const response = await api.post(`/collections/${collectionId}/requests`, {
         type: 'FOLDER',
         name,
+        parentId,
       })
 
-      console.log(response.data)
+      queryClient.setQueryData(
+        ['collections', collectionId],
+        (prevState: Collection) => ({
+          ...prevState,
+          requests: [...prevState.requests, response.data.request],
+        }),
+      )
+
+      handleClose()
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Create folder</DialogTitle>
@@ -69,10 +94,15 @@ export function CreateFolder({ children, parentId }: CreateFolderProps) {
           <div className="flex flex-col gap-1">
             <Label htmlFor="name">Name</Label>
             <Input id="name" placeholder="Name" {...form.register('name')} />
+            {form.formState.errors.name?.message && (
+              <span className="text-sm text-red-500">
+                {form.formState.errors.name?.message}
+              </span>
+            )}
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline">
+            <Button type="button" variant="outline" onClick={handleClose}>
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
