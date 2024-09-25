@@ -12,6 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Skeleton } from '@/components/ui/skeleton'
 import { api } from '@/lib/api'
 import { useOrganizationStore } from '@/stores/organization-store'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -30,8 +31,10 @@ export function Collections() {
 
   const queryClient = useQueryClient()
 
-  const [createModalVisible, setCreateModalVisible] = useState(false)
-  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [modalVisible, setModalVisible] = useState(false)
+  const [collectionToUpdate, setCollectionToUpdate] =
+    useState<Collection | null>(null)
+  const [loading, setLoading] = useState(false)
 
   const { data, isPending } = useQuery({
     queryKey: ['collections'],
@@ -46,7 +49,7 @@ export function Collections() {
 
   async function deleteCollection(id: string) {
     try {
-      setDeleteLoading(true)
+      setLoading(true)
 
       await api.delete(`/organizations/${organization?.id}/collections/${id}`)
 
@@ -54,36 +57,57 @@ export function Collections() {
         prevState.filter((item) => item.id !== id),
       )
     } finally {
-      setDeleteLoading(false)
+      setLoading(false)
     }
   }
 
   if (!data && isPending) {
     return (
-      <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50">
-        <LoaderCircle className="animate-spin" />
+      <div className="flex flex-1 flex-col gap-4 p-4">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-6 w-24" />
+          <Skeleton className="h-9 w-32" />
+        </div>
+
+        <div className="grid grid-cols-4 gap-2">
+          <Skeleton className="h-16" />
+          <Skeleton className="h-16" />
+          <Skeleton className="h-16" />
+          <Skeleton className="h-16" />
+          <Skeleton className="h-16" />
+        </div>
       </div>
     )
   }
 
   return (
     <>
+      {loading && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50">
+          <LoaderCircle className="animate-spin" />
+        </div>
+      )}
+
       <CreateCollection
-        open={createModalVisible}
-        onOpenChange={setCreateModalVisible}
+        open={modalVisible}
+        onOpenChange={() => {
+          setModalVisible(false)
+          setCollectionToUpdate(null)
+        }}
+        collectionToUpdate={collectionToUpdate}
       />
 
       <div className="flex flex-1 flex-col gap-4 p-4">
         <header className="flex justify-between">
           <p className="text-lg font-semibold">Collections</p>
 
-          <Button type="button" onClick={() => setCreateModalVisible(true)}>
+          <Button type="button" onClick={() => setModalVisible(true)}>
             + Collection
           </Button>
         </header>
 
         {data?.length === 0 ? (
-          <Empty title="No collections found" />
+          <Empty />
         ) : (
           <div className="grid grid-cols-4 gap-2">
             {data?.map((item) => (
@@ -108,7 +132,8 @@ export function Collections() {
                       onClick={(event) => {
                         event.stopPropagation()
 
-                        console.log('edit')
+                        setCollectionToUpdate(item)
+                        setModalVisible(true)
                       }}
                     >
                       Edit
@@ -119,12 +144,9 @@ export function Collections() {
 
                         deleteCollection(item.id)
                       }}
+                      className="text-red-500 focus:bg-destructive/30 focus:text-red-500"
                     >
-                      {deleteLoading ? (
-                        <LoaderCircle className="size-4 animate-spin" />
-                      ) : (
-                        'Delete'
-                      )}
+                      Delete
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

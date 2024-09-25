@@ -1,11 +1,7 @@
-interface EmptyProps {
-  title: string
-}
-
-export function Empty({ title }: EmptyProps) {
+export function Empty() {
   return (
     <div className="flex flex-1 items-center justify-center rounded-md border border-dashed">
-      <span className="text-base font-semibold">{title}</span>
+      <span className="text-sm font-semibold">No data found</span>
     </div>
   )
 }

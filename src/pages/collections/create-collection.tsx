@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 
@@ -31,11 +31,13 @@ type FormData = z.infer<typeof formSchema>
 interface CreateCollectionProps {
   open: boolean
   onOpenChange: (value: boolean) => void
+  collectionToUpdate: Collection | null
 }
 
 export function CreateCollection({
   open,
   onOpenChange,
+  collectionToUpdate,
 }: CreateCollectionProps) {
   const navigate = useNavigate()
 
@@ -47,27 +49,52 @@ export function CreateCollection({
 
   const [loading, setLoading] = useState(false)
 
+  useEffect(() => {
+    if (collectionToUpdate) {
+      form.reset(collectionToUpdate)
+    }
+  }, [collectionToUpdate, form])
+
   const queryClient = useQueryClient()
 
-  async function createCollection(data: FormData) {
+  async function submitCollection(data: FormData) {
     try {
       setLoading(true)
 
       const { name } = data
 
-      const response = await api.post(
-        `/organizations/${organization?.id}/collections`,
-        {
-          name,
-        },
-      )
+      if (collectionToUpdate) {
+        await api.put(
+          `/organizations/${organization?.id}/collections/${collectionToUpdate.id}`,
+          {
+            name,
+          },
+        )
 
-      queryClient.setQueryData(['collections'], (prevState: Collection[]) => [
-        ...prevState,
-        response.data.collection,
-      ])
+        queryClient.setQueryData(['collections'], (prevState: Collection[]) =>
+          prevState.map((collection) =>
+            collection.id === collectionToUpdate.id
+              ? { ...collection, name }
+              : collection,
+          ),
+        )
 
-      navigate(`/collections/${response.data.collection.id}`)
+        handleCloseModal()
+      } else {
+        const response = await api.post(
+          `/organizations/${organization?.id}/collections`,
+          {
+            name,
+          },
+        )
+
+        queryClient.setQueryData(['collections'], (prevState: Collection[]) => [
+          ...prevState,
+          response.data.collection,
+        ])
+
+        navigate(`/collections/${response.data.collection.id}`)
+      }
     } finally {
       setLoading(false)
     }
@@ -82,16 +109,23 @@ export function CreateCollection({
     <Dialog open={open} onOpenChange={handleCloseModal}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create collection</DialogTitle>
+          <DialogTitle>
+            {collectionToUpdate ? 'Update' : 'Create'} collection
+          </DialogTitle>
         </DialogHeader>
 
         <form
           className="mt-4 flex flex-col gap-8"
-          onSubmit={form.handleSubmit(createCollection)}
+          onSubmit={form.handleSubmit(submitCollection)}
         >
           <div className="flex flex-col gap-1">
             <Label htmlFor="name">Name</Label>
             <Input id="name" placeholder="Name" {...form.register('name')} />
+            {form.formState.errors.name?.message && (
+              <span className="text-sm text-red-500">
+                {form.formState.errors.name?.message}
+              </span>
+            )}
           </div>
 
           <DialogFooter>
@@ -101,6 +135,8 @@ export function CreateCollection({
             <Button type="submit" disabled={loading}>
               {loading ? (
                 <LoaderCircle className="size-4 animate-spin" />
+              ) : collectionToUpdate ? (
+                'Update'
               ) : (
                 'Create'
               )}

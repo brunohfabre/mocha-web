@@ -137,7 +137,12 @@ export function Item({
           </>
         )}
 
-        <ContextMenuItem onClick={handleDelete}>Delete</ContextMenuItem>
+        <ContextMenuItem
+          onClick={handleDelete}
+          className="text-red-500 focus:bg-destructive/30 focus:text-red-500"
+        >
+          Delete
+        </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
   )
