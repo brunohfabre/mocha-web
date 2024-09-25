@@ -1,5 +1,7 @@
 import { Outlet, useParams } from 'react-router-dom'
 
+import { LoaderCircle } from 'lucide-react'
+
 import { Separator } from '@/components/ui/separator'
 import { api } from '@/lib/api'
 import { useOrganizationStore } from '@/stores/organization-store'
@@ -25,8 +27,8 @@ export function Collection() {
 
   if (!data && isPending) {
     return (
-      <div className="flex flex-1 items-center justify-center">
-        <span>is loading</span>
+      <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50">
+        <LoaderCircle className="animate-spin" />
       </div>
     )
   }

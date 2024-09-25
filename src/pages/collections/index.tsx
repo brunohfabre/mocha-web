@@ -58,10 +58,10 @@ export function Collections() {
     }
   }
 
-  if (isPending) {
+  if (!data && isPending) {
     return (
-      <div className="flex flex-1 items-center justify-center">
-        <span>is loading</span>
+      <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/50">
+        <LoaderCircle className="animate-spin" />
       </div>
     )
   }
