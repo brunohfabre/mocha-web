@@ -28,17 +28,17 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>
 
-interface CreateCollectionProps {
+interface CollectionFormProps {
   open: boolean
   onOpenChange: (value: boolean) => void
   collectionToUpdate: Collection | null
 }
 
-export function CreateCollection({
+export function CollectionForm({
   open,
   onOpenChange,
   collectionToUpdate,
-}: CreateCollectionProps) {
+}: CollectionFormProps) {
   const navigate = useNavigate()
 
   const organization = useOrganizationStore((state) => state.organization)

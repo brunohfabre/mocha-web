@@ -17,7 +17,7 @@ import { api } from '@/lib/api'
 import { useOrganizationStore } from '@/stores/organization-store'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { CreateCollection } from './create-collection'
+import { CollectionForm } from './collection-form'
 
 export type Collection = {
   id: string
@@ -88,7 +88,7 @@ export function Collections() {
         </div>
       )}
 
-      <CreateCollection
+      <CollectionForm
         open={modalVisible}
         onOpenChange={() => {
           setModalVisible(false)

@@ -121,8 +121,10 @@ export function Sidebar() {
       />
 
       <div className="flex w-80 flex-col">
-        <div className="flex h-[52px] items-center px-4">
+        <div className="flex h-[52px] items-center justify-between px-4">
           <span className="text-sm font-semibold">{collection?.name}</span>
+
+          {/* <LoaderCircle className="size-4 animate-spin text-muted-foreground" /> */}
         </div>
 
         <Separator />
