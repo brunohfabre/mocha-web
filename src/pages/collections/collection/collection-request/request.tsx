@@ -20,7 +20,6 @@ import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { api } from '@/lib/api'
 import { debounce } from '@/utils/debounce'
-import { isArrayEqual } from '@/utils/is-array-equal'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Editor } from '@monaco-editor/react'
 import { useQueryClient } from '@tanstack/react-query'
@@ -84,7 +83,6 @@ export function Request({ request }: RequestProps) {
 
   const bodyType = useWatch({ control: form.control, name: 'bodyType' })
   const authType = useWatch({ control: form.control, name: 'authType' })
-  const headers = useWatch({ control: form.control, name: 'headers' })
 
   const [, setLoading] = useAtom(loadingAtom)
   const [, setResponse] = useAtom(responseAtom)
@@ -115,20 +113,6 @@ export function Request({ request }: RequestProps) {
   }
 
   const handleUpdateRequest = debounce(updateRequest, 500)
-
-  useEffect(() => {
-    if (request.headers === undefined || headers === undefined) {
-      return
-    }
-
-    const result = isArrayEqual(request.headers, headers)
-
-    if (!result) {
-      // handleUpdateRequest({
-      //   headers,
-      // })
-    }
-  }, [request.headers, headers, handleUpdateRequest])
 
   function handleUpdateMethod(data: Record<string, any>) {
     handleUpdateRequest(data)
@@ -381,7 +365,15 @@ export function Request({ request }: RequestProps) {
             <div className="flex justify-end">
               <Button
                 type="button"
-                onClick={() => headersField.append({ name: '', value: '' })}
+                onClick={() => {
+                  headersField.append({ name: '', value: '' })
+
+                  const data = form.getValues()
+
+                  updateRequest({
+                    headers: data.headers,
+                  })
+                }}
               >
                 + Header
               </Button>
@@ -390,21 +382,66 @@ export function Request({ request }: RequestProps) {
             <div className="flex flex-col gap-2 overflow-auto">
               {headersField.fields.map((field, index) => (
                 <div key={field.id} className="flex gap-2">
-                  <Input
-                    className="flex-1"
-                    placeholder="Name"
-                    {...form.register(`headers.${index}.name`)}
+                  <Controller
+                    name={`headers.${index}.name`}
+                    control={form.control}
+                    render={({ field }) => (
+                      <Input
+                        className="flex-1"
+                        placeholder="Name"
+                        value={field.value}
+                        onChange={(event) => {
+                          field.onChange(event.target.value)
+
+                          const data = form.getValues()
+                          handleUpdateRequest({
+                            headers: data.headers.map((item, itemIndex) =>
+                              itemIndex === index
+                                ? { ...item, name: event.target.value }
+                                : item,
+                            ),
+                          })
+                        }}
+                      />
+                    )}
                   />
-                  <Input
-                    className="flex-1"
-                    placeholder="Value"
-                    {...form.register(`headers.${index}.value`)}
+
+                  <Controller
+                    name={`headers.${index}.value`}
+                    control={form.control}
+                    render={({ field }) => (
+                      <Input
+                        className="flex-1"
+                        placeholder="Name"
+                        value={field.value}
+                        onChange={(event) => {
+                          field.onChange(event.target.value)
+
+                          const data = form.getValues()
+                          handleUpdateRequest({
+                            headers: data.headers.map((item, itemIndex) =>
+                              itemIndex === index
+                                ? { ...item, value: event.target.value }
+                                : item,
+                            ),
+                          })
+                        }}
+                      />
+                    )}
                   />
                   <Button
                     type="button"
                     variant="outline"
                     size="icon"
-                    onClick={() => headersField.remove(index)}
+                    onClick={() => {
+                      headersField.remove(index)
+
+                      const data = form.getValues()
+
+                      updateRequest({
+                        headers: data.headers,
+                      })
+                    }}
                   >
                     <X className="size-4" />
                   </Button>
