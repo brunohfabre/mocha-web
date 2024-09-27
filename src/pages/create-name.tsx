@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { api } from '@/lib/api'
 import { useAuthStore } from '@/stores/auth-store'
+import { useOrganizationStore } from '@/stores/organization-store'
 import { zodResolver } from '@hookform/resolvers/zod'
 
 const formSchema = z.object({
@@ -24,6 +25,8 @@ export function CreateName() {
   const user = useAuthStore((state) => state.user)
   const setUser = useAuthStore((state) => state.setUser)
 
+  const setOrganization = useOrganizationStore((state) => state.setOrganization)
+
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
   })
@@ -36,9 +39,11 @@ export function CreateName() {
 
       const { name } = data
 
-      await api.patch(`/users/${user?.id}/name`, {
+      const response = await api.patch(`/users/${user?.id}/name`, {
         name,
       })
+
+      setOrganization(response.data.user.organizations[0])
 
       setUser({ ...user!, name })
 

@@ -10,7 +10,10 @@ import { useQuery } from '@tanstack/react-query'
 import { Sidebar } from './sidebar'
 
 export function Collection() {
-  const { collectionId } = useParams<{ collectionId: string }>()
+  const { collectionId, requestId } = useParams<{
+    collectionId: string
+    requestId: string
+  }>()
 
   const organization = useOrganizationStore((state) => state.organization)
 
@@ -41,11 +44,11 @@ export function Collection() {
 
       <Outlet />
 
-      {/* <Request />
-
-      <Separator orientation="vertical" />
-
-      <Response /> */}
+      {!requestId && (
+        <div className="flex flex-1 items-center justify-center">
+          <p className="text-sm">To start, select a request.</p>
+        </div>
+      )}
     </div>
   )
 }

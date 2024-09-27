@@ -1,5 +1,6 @@
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form'
+import { useParams } from 'react-router-dom'
 
 import axios, { AxiosError, type AxiosResponse } from 'axios'
 import { useAtom } from 'jotai'
@@ -17,19 +18,24 @@ import {
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { api } from '@/lib/api'
+import { debounce } from '@/utils/debounce'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Editor } from '@monaco-editor/react'
+import { useQueryClient } from '@tanstack/react-query'
 
+import type { Collection, Request as RequestType } from '../sidebar'
+import { updateLoadingAtom } from '../state'
 import { controller, loadingAtom, responseAtom } from './state'
 
 const formSchema = z.object({
-  method: z.enum(['get', 'post', 'put', 'patch', 'delete']),
+  method: z.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']),
   url: z.string(),
 
-  bodyType: z.enum(['none', 'json']),
+  bodyType: z.enum(['NONE', 'JSON']),
   body: z.string().optional(),
 
-  authType: z.enum(['none', 'bearer']),
+  authType: z.enum(['NONE', 'BEARER']),
   auth: z.record(z.string(), z.string()).optional(),
 
   headers: z.array(
@@ -49,18 +55,22 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>
 
-export function Request() {
+interface RequestProps {
+  request: RequestType
+}
+
+export function Request({ request }: RequestProps) {
   const editorRef = useRef(null)
+
+  const { collectionId, requestId } = useParams<{
+    collectionId: string
+    requestId: string
+  }>()
+
+  const queryClient = useQueryClient()
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      method: 'get',
-
-      bodyType: 'none',
-
-      authType: 'none',
-    },
   })
   const headersField = useFieldArray({
     control: form.control,
@@ -76,6 +86,47 @@ export function Request() {
 
   const [, setLoading] = useAtom(loadingAtom)
   const [, setResponse] = useAtom(responseAtom)
+  const [, setUpdateLoading] = useAtom(updateLoadingAtom)
+
+  useEffect(() => {
+    form.reset(request as any)
+  }, [form, request])
+
+  async function updateRequest(data: Record<string, any>) {
+    try {
+      setUpdateLoading(true)
+
+      await api.put(`/collections/${collectionId}/requests/${requestId}`, data)
+
+      queryClient.setQueryData(
+        ['collections', collectionId],
+        (prevState: Collection) => ({
+          ...prevState,
+          requests: prevState.requests.map((item) =>
+            item.id === requestId ? { ...item, ...data } : item,
+          ),
+        }),
+      )
+    } finally {
+      setUpdateLoading(false)
+    }
+  }
+
+  const handleUpdateRequest = debounce(updateRequest, 500)
+
+  function handleUpdateMethod(data: Record<string, any>) {
+    handleUpdateRequest(data)
+
+    queryClient.setQueryData(
+      ['collections', collectionId],
+      (prevState: Collection) => ({
+        ...prevState,
+        requests: prevState.requests.map((item) =>
+          item.id === requestId ? { ...item, ...data } : item,
+        ),
+      }),
+    )
+  }
 
   function sendRequest(data: FormData) {
     setLoading(true)
@@ -93,7 +144,7 @@ export function Request() {
       paramsObject[param.name] = param.value
     })
 
-    if (authType === 'bearer') {
+    if (authType === 'BEARER') {
       headersObject.authorization = `Bearer ${auth?.token}`
     }
 
@@ -150,23 +201,34 @@ export function Request() {
           control={form.control}
           name="method"
           render={({ field }) => (
-            <Select value={field.value} onValueChange={field.onChange}>
+            <Select
+              value={field.value}
+              onValueChange={(value) => {
+                field.onChange(value)
+
+                handleUpdateMethod({ method: value })
+              }}
+            >
               <SelectTrigger className="w-min min-w-24">
                 <SelectValue placeholder="Method" />
               </SelectTrigger>
 
               <SelectContent>
-                <SelectItem value="get">GET</SelectItem>
-                <SelectItem value="post">POST</SelectItem>
-                <SelectItem value="put">PUT</SelectItem>
-                <SelectItem value="patch">PATCH</SelectItem>
-                <SelectItem value="delete">DELETE</SelectItem>
+                <SelectItem value="GET">GET</SelectItem>
+                <SelectItem value="POST">POST</SelectItem>
+                <SelectItem value="PUT">PUT</SelectItem>
+                <SelectItem value="PATCH">PATCH</SelectItem>
+                <SelectItem value="DELETE">DELETE</SelectItem>
               </SelectContent>
             </Select>
           )}
         />
 
-        <Input placeholder="Enter URL" {...form.register('url')} />
+        <Input
+          placeholder="Enter URL"
+          {...form.register('url')}
+          onChange={(event) => handleUpdateRequest({ url: event.target.value })}
+        />
 
         <Button type="submit">Send</Button>
       </form>
@@ -186,7 +248,7 @@ export function Request() {
         <TabsContent value="body" className="m-0" asChild>
           <div className="flex flex-1 flex-col">
             <div className="flex-1">
-              {bodyType === 'json' && (
+              {bodyType === 'JSON' && (
                 <Controller
                   control={form.control}
                   name="body"
@@ -194,7 +256,13 @@ export function Request() {
                     <Editor
                       defaultLanguage="json"
                       value={field.value}
-                      onChange={(value) => field.onChange(value)}
+                      onChange={(value) => {
+                        field.onChange(value)
+
+                        handleUpdateRequest({
+                          body: value,
+                        })
+                      }}
                       options={{
                         tabSize: 2,
                       }}
@@ -216,7 +284,11 @@ export function Request() {
                     onValueChange={(value) => {
                       field.onChange(value)
 
-                      if (value === 'none') {
+                      handleUpdateRequest({
+                        bodyType: value,
+                      })
+
+                      if (value === 'NONE') {
                         form.setValue('body', '')
                       }
                     }}
@@ -226,8 +298,8 @@ export function Request() {
                     </SelectTrigger>
 
                     <SelectContent>
-                      <SelectItem value="none">None</SelectItem>
-                      <SelectItem value="json">JSON</SelectItem>
+                      <SelectItem value="NONE">None</SelectItem>
+                      <SelectItem value="JSON">JSON</SelectItem>
                     </SelectContent>
                   </Select>
                 )}
@@ -239,8 +311,18 @@ export function Request() {
         <TabsContent value="auth" className="m-0" asChild>
           <div className="flex flex-1 flex-col">
             <div className="flex-1 px-2 py-6">
-              {authType === 'bearer' && (
-                <Input placeholder="Token" {...form.register('auth.token')} />
+              {authType === 'BEARER' && (
+                <Input
+                  placeholder="Token"
+                  {...form.register('auth.token')}
+                  onChange={(event) =>
+                    handleUpdateRequest({
+                      auth: {
+                        token: event.target.value,
+                      },
+                    })
+                  }
+                />
               )}
             </div>
 
@@ -254,7 +336,11 @@ export function Request() {
                     onValueChange={(value) => {
                       field.onChange(value)
 
-                      if (value === 'none') {
+                      handleUpdateRequest({
+                        authType: value,
+                      })
+
+                      if (value === 'NONE') {
                         form.setValue('auth', {})
                       }
                     }}
@@ -264,8 +350,8 @@ export function Request() {
                     </SelectTrigger>
 
                     <SelectContent>
-                      <SelectItem value="none">None</SelectItem>
-                      <SelectItem value="bearer">Bearer</SelectItem>
+                      <SelectItem value="NONE">None</SelectItem>
+                      <SelectItem value="BEARER">Bearer</SelectItem>
                     </SelectContent>
                   </Select>
                 )}
@@ -279,7 +365,13 @@ export function Request() {
             <div className="flex justify-end">
               <Button
                 type="button"
-                onClick={() => headersField.append({ name: '', value: '' })}
+                onClick={() => {
+                  headersField.append({ name: '', value: '' })
+
+                  handleUpdateRequest({
+                    headers: [...request.headers, { name: '', value: '' }],
+                  })
+                }}
               >
                 + Header
               </Button>
@@ -302,7 +394,15 @@ export function Request() {
                     type="button"
                     variant="outline"
                     size="icon"
-                    onClick={() => headersField.remove(index)}
+                    onClick={() => {
+                      headersField.remove(index)
+
+                      handleUpdateRequest({
+                        headers: request.headers.filter(
+                          (_, itemIndex) => itemIndex !== index,
+                        ),
+                      })
+                    }}
                   >
                     <X className="size-4" />
                   </Button>
@@ -317,7 +417,13 @@ export function Request() {
             <div className="flex justify-end">
               <Button
                 type="button"
-                onClick={() => paramsField.append({ name: '', value: '' })}
+                onClick={() => {
+                  paramsField.append({ name: '', value: '' })
+
+                  handleUpdateRequest({
+                    params: [...request.params, { name: '', value: '' }],
+                  })
+                }}
               >
                 + Param
               </Button>
@@ -340,7 +446,15 @@ export function Request() {
                     type="button"
                     variant="outline"
                     size="icon"
-                    onClick={() => paramsField.remove(index)}
+                    onClick={() => {
+                      paramsField.remove(index)
+
+                      handleUpdateRequest({
+                        params: request.params.filter(
+                          (_, itemIndex) => itemIndex !== index,
+                        ),
+                      })
+                    }}
                   >
                     <X className="size-4" />
                   </Button>

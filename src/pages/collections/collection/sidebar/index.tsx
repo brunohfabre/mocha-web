@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
+import { useAtom } from 'jotai'
 import { LoaderCircle } from 'lucide-react'
 
 import {
@@ -13,6 +14,7 @@ import { Separator } from '@/components/ui/separator'
 import { api } from '@/lib/api'
 import { useQueryClient } from '@tanstack/react-query'
 
+import { updateLoadingAtom } from '../state'
 import { CreateFolder } from './create-folder'
 import { Item } from './item'
 
@@ -23,6 +25,8 @@ export type Request = {
   method: string
   url: string
   name: string
+  headers: any[]
+  params: any[]
 }
 
 export type Collection = {
@@ -37,6 +41,8 @@ export function Sidebar() {
     requestId: string
   }>()
   const navigate = useNavigate()
+
+  const [updateLoading] = useAtom(updateLoadingAtom)
 
   const [loading, setLoading] = useState(false)
   const [createFolderVisible, setCreateFolderVisible] = useState(false)
@@ -124,7 +130,9 @@ export function Sidebar() {
         <div className="flex h-[52px] items-center justify-between px-4">
           <span className="text-sm font-semibold">{collection?.name}</span>
 
-          {/* <LoaderCircle className="size-4 animate-spin text-muted-foreground" /> */}
+          {updateLoading && (
+            <LoaderCircle className="size-4 animate-spin text-muted-foreground" />
+          )}
         </div>
 
         <Separator />
