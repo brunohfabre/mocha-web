@@ -20,6 +20,7 @@ import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { api } from '@/lib/api'
 import { debounce } from '@/utils/debounce'
+import { isArrayEqual } from '@/utils/is-array-equal'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Editor } from '@monaco-editor/react'
 import { useQueryClient } from '@tanstack/react-query'
@@ -33,10 +34,10 @@ const formSchema = z.object({
   url: z.string(),
 
   bodyType: z.enum(['NONE', 'JSON']),
-  body: z.string().optional(),
+  body: z.string().nullish(),
 
   authType: z.enum(['NONE', 'BEARER']),
-  auth: z.record(z.string(), z.string()).optional(),
+  auth: z.record(z.string(), z.string()).nullish(),
 
   headers: z.array(
     z.object({
@@ -83,6 +84,7 @@ export function Request({ request }: RequestProps) {
 
   const bodyType = useWatch({ control: form.control, name: 'bodyType' })
   const authType = useWatch({ control: form.control, name: 'authType' })
+  const headers = useWatch({ control: form.control, name: 'headers' })
 
   const [, setLoading] = useAtom(loadingAtom)
   const [, setResponse] = useAtom(responseAtom)
@@ -113,6 +115,20 @@ export function Request({ request }: RequestProps) {
   }
 
   const handleUpdateRequest = debounce(updateRequest, 500)
+
+  useEffect(() => {
+    if (request.headers === undefined || headers === undefined) {
+      return
+    }
+
+    const result = isArrayEqual(request.headers, headers)
+
+    if (!result) {
+      // handleUpdateRequest({
+      //   headers,
+      // })
+    }
+  }, [request.headers, headers, handleUpdateRequest])
 
   function handleUpdateMethod(data: Record<string, any>) {
     handleUpdateRequest(data)
@@ -255,7 +271,7 @@ export function Request({ request }: RequestProps) {
                   render={({ field }) => (
                     <Editor
                       defaultLanguage="json"
-                      value={field.value}
+                      value={field.value === null ? '' : field.value}
                       onChange={(value) => {
                         field.onChange(value)
 
@@ -365,13 +381,7 @@ export function Request({ request }: RequestProps) {
             <div className="flex justify-end">
               <Button
                 type="button"
-                onClick={() => {
-                  headersField.append({ name: '', value: '' })
-
-                  handleUpdateRequest({
-                    headers: [...request.headers, { name: '', value: '' }],
-                  })
-                }}
+                onClick={() => headersField.append({ name: '', value: '' })}
               >
                 + Header
               </Button>
@@ -394,15 +404,7 @@ export function Request({ request }: RequestProps) {
                     type="button"
                     variant="outline"
                     size="icon"
-                    onClick={() => {
-                      headersField.remove(index)
-
-                      handleUpdateRequest({
-                        headers: request.headers.filter(
-                          (_, itemIndex) => itemIndex !== index,
-                        ),
-                      })
-                    }}
+                    onClick={() => headersField.remove(index)}
                   >
                     <X className="size-4" />
                   </Button>
@@ -417,13 +419,7 @@ export function Request({ request }: RequestProps) {
             <div className="flex justify-end">
               <Button
                 type="button"
-                onClick={() => {
-                  paramsField.append({ name: '', value: '' })
-
-                  handleUpdateRequest({
-                    params: [...request.params, { name: '', value: '' }],
-                  })
-                }}
+                onClick={() => paramsField.append({ name: '', value: '' })}
               >
                 + Param
               </Button>
@@ -446,15 +442,7 @@ export function Request({ request }: RequestProps) {
                     type="button"
                     variant="outline"
                     size="icon"
-                    onClick={() => {
-                      paramsField.remove(index)
-
-                      handleUpdateRequest({
-                        params: request.params.filter(
-                          (_, itemIndex) => itemIndex !== index,
-                        ),
-                      })
-                    }}
+                    onClick={() => paramsField.remove(index)}
                   >
                     <X className="size-4" />
                   </Button>
