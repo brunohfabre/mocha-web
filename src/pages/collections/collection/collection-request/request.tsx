@@ -456,7 +456,15 @@ export function Request({ request }: RequestProps) {
             <div className="flex justify-end">
               <Button
                 type="button"
-                onClick={() => paramsField.append({ name: '', value: '' })}
+                onClick={() => {
+                  paramsField.append({ name: '', value: '' })
+
+                  const data = form.getValues()
+
+                  updateRequest({
+                    params: data.params,
+                  })
+                }}
               >
                 + Param
               </Button>
@@ -465,21 +473,66 @@ export function Request({ request }: RequestProps) {
             <div className="flex flex-col gap-2 overflow-auto">
               {paramsField.fields.map((field, index) => (
                 <div key={field.id} className="flex gap-2">
-                  <Input
-                    className="flex-1"
-                    placeholder="Name"
-                    {...form.register(`params.${index}.name`)}
+                  <Controller
+                    name={`params.${index}.name`}
+                    control={form.control}
+                    render={({ field }) => (
+                      <Input
+                        className="flex-1"
+                        placeholder="Name"
+                        value={field.value}
+                        onChange={(event) => {
+                          field.onChange(event.target.value)
+
+                          const data = form.getValues()
+                          handleUpdateRequest({
+                            params: data.params.map((item, itemIndex) =>
+                              itemIndex === index
+                                ? { ...item, name: event.target.value }
+                                : item,
+                            ),
+                          })
+                        }}
+                      />
+                    )}
                   />
-                  <Input
-                    className="flex-1"
-                    placeholder="Value"
-                    {...form.register(`params.${index}.value`)}
+
+                  <Controller
+                    name={`params.${index}.value`}
+                    control={form.control}
+                    render={({ field }) => (
+                      <Input
+                        className="flex-1"
+                        placeholder="Name"
+                        value={field.value}
+                        onChange={(event) => {
+                          field.onChange(event.target.value)
+
+                          const data = form.getValues()
+                          handleUpdateRequest({
+                            params: data.params.map((item, itemIndex) =>
+                              itemIndex === index
+                                ? { ...item, value: event.target.value }
+                                : item,
+                            ),
+                          })
+                        }}
+                      />
+                    )}
                   />
                   <Button
                     type="button"
                     variant="outline"
                     size="icon"
-                    onClick={() => paramsField.remove(index)}
+                    onClick={() => {
+                      paramsField.remove(index)
+
+                      const data = form.getValues()
+
+                      updateRequest({
+                        params: data.params,
+                      })
+                    }}
                   >
                     <X className="size-4" />
                   </Button>
