@@ -265,7 +265,7 @@ export function Request({ request }: RequestProps) {
                       }}
                       options={{
                         tabSize: 2,
-                        wordWrap: 'off',
+                        wordWrap: 'bounded',
 
                         minimap: {
                           enabled: false,

@@ -117,7 +117,7 @@ export function Response() {
               options={{
                 readOnly: true,
                 tabSize: 2,
-                wordWrap: 'off',
+                wordWrap: 'bounded',
 
                 minimap: {
                   enabled: false,
