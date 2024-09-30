@@ -29,14 +29,14 @@ export function Response() {
     startOfStatus === '1'
       ? 'informational'
       : startOfStatus === '2'
-      ? 'success'
-      : startOfStatus === '3'
-      ? 'redirection'
-      : startOfStatus === '4'
-      ? 'client-error'
-      : startOfStatus === '5'
-      ? 'server-error'
-      : 'error'
+        ? 'success'
+        : startOfStatus === '3'
+          ? 'redirection'
+          : startOfStatus === '4'
+            ? 'client-error'
+            : startOfStatus === '5'
+              ? 'server-error'
+              : 'error'
 
   function handleCancelRequest() {
     controller.abort()
@@ -110,19 +110,24 @@ export function Response() {
       {response?.response?.config.headers.Accept?.toString().includes(
         'application/json',
       ) && (
-        <div className="flex-1">
-          <Editor
-            defaultLanguage="json"
-            value={JSON.stringify(response.response.data, null, 2)}
-            options={{
-              readOnly: true,
-              tabSize: 2,
-            }}
-            onMount={handleEditorDidMount}
-            theme="vs-dark"
-          />
-        </div>
-      )}
+          <div className="flex-1">
+            <Editor
+              defaultLanguage="json"
+              value={JSON.stringify(response.response.data, null, 2)}
+              options={{
+                readOnly: true,
+                tabSize: 2,
+                wordWrap: 'off',
+
+                minimap: {
+                  enabled: false,
+                },
+              }}
+              onMount={handleEditorDidMount}
+              theme="vs-dark"
+            />
+          </div>
+        )}
     </div>
   )
 }

@@ -265,6 +265,11 @@ export function Request({ request }: RequestProps) {
                       }}
                       options={{
                         tabSize: 2,
+                        wordWrap: 'off',
+
+                        minimap: {
+                          enabled: false,
+                        },
                       }}
                       onMount={handleEditorDidMount}
                       theme="vs-dark"
