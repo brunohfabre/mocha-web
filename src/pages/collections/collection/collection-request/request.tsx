@@ -26,7 +26,7 @@ import { useQueryClient } from '@tanstack/react-query'
 
 import type { Collection, Request as RequestType } from '../sidebar'
 import { updateLoadingAtom } from '../state'
-import { controller, loadingAtom, responseAtom } from './state'
+import { controller, loadingAtom, responsesAtom } from './state'
 
 const formSchema = z.object({
   method: z.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']),
@@ -85,7 +85,7 @@ export function Request({ request }: RequestProps) {
   const authType = useWatch({ control: form.control, name: 'authType' })
 
   const [, setLoading] = useAtom(loadingAtom)
-  const [, setResponse] = useAtom(responseAtom)
+  const [, setResponses] = useAtom(responsesAtom)
   const [, setUpdateLoading] = useAtom(updateLoadingAtom)
 
   useEffect(() => {
@@ -161,18 +161,27 @@ export function Request({ request }: RequestProps) {
       .then((data) => {
         const time = Date.now() - startTime
 
-        setResponse({ response: data, time })
+        setResponses((prevState) => ({
+          ...prevState,
+          [request.id]: { response: data, time },
+        }))
       })
       .catch((error) => {
         if (error instanceof AxiosError) {
           const time = Date.now() - startTime
 
           if (error.code === 'ERR_NETWORK') {
-            setResponse({ response: null, time })
+            setResponses((prevState) => ({
+              ...prevState,
+              [request.id]: { response: null, time },
+            }))
             return
           }
 
-          setResponse({ response: error.response as AxiosResponse, time })
+          setResponses((prevState) => ({
+            ...prevState,
+            [request.id]: { response: error.response as AxiosResponse, time },
+          }))
         }
       })
       .finally(() => {

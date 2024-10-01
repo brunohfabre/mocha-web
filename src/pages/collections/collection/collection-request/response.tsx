@@ -1,4 +1,5 @@
-import { useRef } from 'react'
+import { useMemo, useRef } from 'react'
+import { useParams } from 'react-router-dom'
 
 import { useAtom } from 'jotai'
 import { LoaderCircle } from 'lucide-react'
@@ -8,7 +9,7 @@ import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 import { Editor } from '@monaco-editor/react'
 
-import { controller, loadingAtom, responseAtom } from './state'
+import { controller, loadingAtom, responsesAtom } from './state'
 
 type StatusType =
   | 'informational'
@@ -17,26 +18,46 @@ type StatusType =
   | 'client-error'
   | 'server-error'
   | 'error'
+  | 'unknown'
 
 export function Response() {
+  const { requestId } = useParams<{ requestId: string }>()
+
   const editorRef = useRef(null)
 
   const [loading] = useAtom(loadingAtom)
-  const [response] = useAtom(responseAtom)
+  const [responses] = useAtom(responsesAtom)
+
+  const response = responses[requestId as string]
 
   const startOfStatus = response?.response?.status.toString()[0]
-  const statusType: StatusType =
-    startOfStatus === '1'
-      ? 'informational'
-      : startOfStatus === '2'
-        ? 'success'
-        : startOfStatus === '3'
-          ? 'redirection'
-          : startOfStatus === '4'
-            ? 'client-error'
-            : startOfStatus === '5'
-              ? 'server-error'
-              : 'error'
+  const statusType: StatusType = useMemo(() => {
+    if (!startOfStatus) {
+      return 'error'
+    }
+
+    if (startOfStatus === '1') {
+      return 'informational'
+    }
+
+    if (startOfStatus === '2') {
+      return 'success'
+    }
+
+    if (startOfStatus === '3') {
+      return 'redirection'
+    }
+
+    if (startOfStatus === '4') {
+      return 'client-error'
+    }
+
+    if (startOfStatus === '5') {
+      return 'server-error'
+    }
+
+    return 'unknown'
+  }, [startOfStatus])
 
   function handleCancelRequest() {
     controller.abort()
@@ -52,6 +73,11 @@ export function Response() {
       })
     })
   }
+
+  const isJsonResponse =
+    response?.response?.config.headers.Accept?.toString().includes(
+      'application/json',
+    )
 
   if (!loading && !response) {
     return (
@@ -107,27 +133,25 @@ export function Response() {
         </div>
       )}
 
-      {response?.response?.config.headers.Accept?.toString().includes(
-        'application/json',
-      ) && (
-          <div className="flex-1">
-            <Editor
-              defaultLanguage="json"
-              value={JSON.stringify(response.response.data, null, 2)}
-              options={{
-                readOnly: true,
-                tabSize: 2,
-                wordWrap: 'bounded',
+      {isJsonResponse && (
+        <div className="flex-1">
+          <Editor
+            defaultLanguage="json"
+            value={JSON.stringify(response.response?.data, null, 2)}
+            options={{
+              readOnly: true,
+              tabSize: 2,
+              wordWrap: 'bounded',
 
-                minimap: {
-                  enabled: false,
-                },
-              }}
-              onMount={handleEditorDidMount}
-              theme="vs-dark"
-            />
-          </div>
-        )}
+              minimap: {
+                enabled: false,
+              },
+            }}
+            onMount={handleEditorDidMount}
+            theme="vs-dark"
+          />
+        </div>
+      )}
     </div>
   )
 }
