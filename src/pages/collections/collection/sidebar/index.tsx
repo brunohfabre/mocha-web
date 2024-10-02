@@ -2,14 +2,21 @@ import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { useAtom } from 'jotai'
-import { LoaderCircle } from 'lucide-react'
+import { LoaderCircle, Plus } from 'lucide-react'
 
+import { Button } from '@/components/ui/button'
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Separator } from '@/components/ui/separator'
 import { api } from '@/lib/api'
 import { useQueryClient } from '@tanstack/react-query'
@@ -146,6 +153,29 @@ export function Sidebar() {
 
         <Separator />
 
+        <div className="flex justify-between p-2">
+          <span />
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button type="button" variant="outline" size="icon">
+                <Plus className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => createRequest()}>
+                Create request
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setCreateFolderVisible(true)}>
+                Create folder
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        <Separator />
+
         <ContextMenu>
           <ContextMenuTrigger asChild>
             {collection?.requests.length ? (
@@ -169,10 +199,24 @@ export function Sidebar() {
                 ))}
               </div>
             ) : (
-              <div className="flex flex-1 items-center justify-center p-4">
-                <span className="text-sm text-muted-foreground">
-                  No data found
-                </span>
+              <div className="flex flex-1 flex-col items-center justify-center gap-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => createRequest()}
+                >
+                  Create request
+                </Button>
+
+                <span className="text-sm text-muted-foreground">or</span>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setCreateFolderVisible(true)}
+                >
+                  Create folder
+                </Button>
               </div>
             )}
           </ContextMenuTrigger>

@@ -91,8 +91,8 @@ export function Item({
               <span
                 className={cn(
                   'ml-1 w-8 text-[10px] font-bold leading-none',
-                  item.method === 'GET' && 'text-green-500',
-                  item.method === 'POST' && 'text-blue-500',
+                  item.method === 'GET' && 'text-blue-500',
+                  item.method === 'POST' && 'text-green-500',
                   item.method === 'PUT' && 'text-amber-500',
                   item.method === 'PATCH' && 'text-orange-500',
                   item.method === 'DELETE' && 'text-red-500',
