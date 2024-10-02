@@ -20,6 +20,7 @@ interface ItemProps {
   createRequest: (parentId?: string) => void
   createFolder: (parentId?: string) => void
   deleteRequest: (id: string) => void
+  renameRequest: (request: Request) => void
 }
 
 export function Item({
@@ -28,6 +29,7 @@ export function Item({
   createRequest,
   createFolder,
   deleteRequest,
+  renameRequest,
 }: ItemProps) {
   const { collectionId, requestId } = useParams<{
     collectionId: string
@@ -59,6 +61,10 @@ export function Item({
 
   function handleDelete() {
     deleteRequest(item.id)
+  }
+
+  function handleRename() {
+    renameRequest(item)
   }
 
   return (
@@ -110,6 +116,7 @@ export function Item({
                       createRequest={createRequest}
                       createFolder={createFolder}
                       deleteRequest={deleteRequest}
+                      renameRequest={renameRequest}
                     />
                   ))}
                 </div>
@@ -136,6 +143,8 @@ export function Item({
             </ContextMenuItem>
           </>
         )}
+
+        <ContextMenuItem onClick={handleRename}>Rename</ContextMenuItem>
 
         <ContextMenuItem
           onClick={handleDelete}

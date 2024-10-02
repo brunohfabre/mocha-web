@@ -17,6 +17,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { updateLoadingAtom } from '../state'
 import { CreateFolder } from './create-folder'
 import { Item } from './item'
+import { RenameRequest } from './rename-request'
 
 export type Request = {
   id: string
@@ -46,7 +47,9 @@ export function Sidebar() {
 
   const [loading, setLoading] = useState(false)
   const [createFolderVisible, setCreateFolderVisible] = useState(false)
-  const [createFolderParentId, setCreateFolderParentId] = useState<string>()
+  const [createFolderParentId, setCreateFolderParentId] = useState<string>('')
+  const [renameRequestVisible, setRenameRequestVisible] = useState(false)
+  const [requestToRename, setRequestToRename] = useState<Request | null>(null)
 
   const queryClient = useQueryClient()
   const collection = queryClient.getQueryData<Collection>([
@@ -126,6 +129,12 @@ export function Sidebar() {
         parentId={createFolderParentId}
       />
 
+      <RenameRequest
+        open={renameRequestVisible}
+        onOpenChange={setRenameRequestVisible}
+        request={requestToRename}
+      />
+
       <div className="flex w-80 flex-col">
         <div className="flex h-[52px] items-center justify-between px-4">
           <span className="text-sm font-semibold">{collection?.name}</span>
@@ -147,11 +156,15 @@ export function Sidebar() {
                     item={item}
                     items={collection.requests}
                     createRequest={createRequest}
-                    createFolder={(parentId) => {
+                    createFolder={(parentId = '') => {
                       setCreateFolderParentId(parentId)
                       setCreateFolderVisible(true)
                     }}
                     deleteRequest={deleteRequest}
+                    renameRequest={(request) => {
+                      setRequestToRename(request)
+                      setRenameRequestVisible(true)
+                    }}
                   />
                 ))}
               </div>
