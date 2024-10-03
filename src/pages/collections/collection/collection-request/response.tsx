@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom'
 import { useAtom } from 'jotai'
 import { LoaderCircle } from 'lucide-react'
 
+import { useTheme } from '@/components/theme-provider'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
@@ -24,6 +25,8 @@ export function Response() {
   const { requestId } = useParams<{ requestId: string }>()
 
   const editorRef = useRef(null)
+
+  const { theme } = useTheme()
 
   const [loading] = useAtom(loadingAtom)
   const [responses] = useAtom(responsesAtom)
@@ -148,7 +151,7 @@ export function Response() {
               },
             }}
             onMount={handleEditorDidMount}
-            theme="vs-dark"
+            theme={theme === 'dark' ? 'vs-dark' : 'vs-light'}
           />
         </div>
       )}

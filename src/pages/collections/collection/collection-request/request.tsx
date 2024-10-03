@@ -7,6 +7,7 @@ import { useAtom } from 'jotai'
 import { X } from 'lucide-react'
 import { z } from 'zod'
 
+import { useTheme } from '@/components/theme-provider'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -66,6 +67,8 @@ export function Request({ request }: RequestProps) {
     collectionId: string
     requestId: string
   }>()
+
+  const { theme } = useTheme()
 
   const queryClient = useQueryClient()
 
@@ -281,7 +284,7 @@ export function Request({ request }: RequestProps) {
                         },
                       }}
                       onMount={handleEditorDidMount}
-                      theme="vs-dark"
+                      theme={theme === 'dark' ? 'vs-dark' : 'vs-light'}
                     />
                   )}
                 />
