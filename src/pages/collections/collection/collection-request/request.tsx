@@ -37,7 +37,7 @@ const formSchema = z.object({
   body: z.string().nullish(),
 
   authType: z.enum(['NONE', 'BEARER']),
-  auth: z.record(z.string(), z.string()).nullish(),
+  auth: z.record(z.string(), z.string().optional()).nullish(),
 
   headers: z.array(
     z.object({
@@ -236,10 +236,19 @@ export function Request({ request }: RequestProps) {
           )}
         />
 
-        <Input
-          placeholder="Enter URL"
-          {...form.register('url')}
-          onChange={(event) => handleUpdateRequest({ url: event.target.value })}
+        <Controller
+          control={form.control}
+          name="url"
+          render={({ field }) => (
+            <Input
+              placeholder="Enter URL"
+              value={field.value}
+              onChange={(event) => {
+                field.onChange(event.target.value)
+                handleUpdateRequest({ url: event.target.value })
+              }}
+            />
+          )}
         />
 
         <Button type="submit">Send</Button>
@@ -329,16 +338,24 @@ export function Request({ request }: RequestProps) {
           <div className="flex flex-1 flex-col">
             <div className="flex-1 px-2 py-6">
               {authType === 'BEARER' && (
-                <Input
-                  placeholder="Token"
-                  {...form.register('auth.token')}
-                  onChange={(event) =>
-                    handleUpdateRequest({
-                      auth: {
-                        token: event.target.value,
-                      },
-                    })
-                  }
+                <Controller
+                  control={form.control}
+                  name="auth.token"
+                  render={({ field }) => (
+                    <Input
+                      placeholder="Token"
+                      value={field.value}
+                      onChange={(event) => {
+                        field.onChange(event.target.value)
+
+                        handleUpdateRequest({
+                          auth: {
+                            token: event.target.value,
+                          },
+                        })
+                      }}
+                    />
+                  )}
                 />
               )}
             </div>
@@ -429,7 +446,7 @@ export function Request({ request }: RequestProps) {
                     render={({ field }) => (
                       <Input
                         className="flex-1"
-                        placeholder="Name"
+                        placeholder="Value"
                         value={field.value}
                         onChange={(event) => {
                           field.onChange(event.target.value)
@@ -520,7 +537,7 @@ export function Request({ request }: RequestProps) {
                     render={({ field }) => (
                       <Input
                         className="flex-1"
-                        placeholder="Name"
+                        placeholder="Value"
                         value={field.value}
                         onChange={(event) => {
                           field.onChange(event.target.value)
