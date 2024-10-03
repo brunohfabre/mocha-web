@@ -1,4 +1,6 @@
-import { Link, Outlet } from 'react-router-dom'
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
+
+import { Notebook } from 'lucide-react'
 
 import LogoDark from '@/assets/logo-dark.png'
 import LogoLight from '@/assets/logo-light.png'
@@ -6,6 +8,7 @@ import { useAuthStore } from '@/stores/auth-store'
 
 import { useTheme } from '../theme-provider'
 import { Avatar, AvatarFallback } from '../ui/avatar'
+import { Button } from '../ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +20,9 @@ import {
 import { Separator } from '../ui/separator'
 
 export function AppLayout() {
+  const navigate = useNavigate()
+  const location = useLocation()
+
   const user = useAuthStore((state) => state.user)
   const clearCredentials = useAuthStore((state) => state.clearCredentials)
 
@@ -49,7 +55,20 @@ export function AppLayout() {
           />
         </Link>
 
-        <div className="mt-auto flex size-[52px] items-center justify-center">
+        <div className="flex flex-1 flex-col p-2">
+          <Button
+            type="button"
+            size="icon"
+            variant={
+              location.pathname.startsWith('/collections') ? 'default' : 'ghost'
+            }
+            onClick={() => navigate('/collections')}
+          >
+            <Notebook className="size-4" />
+          </Button>
+        </div>
+
+        <div className="flex size-[52px] items-center justify-center">
           <DropdownMenu>
             <DropdownMenuTrigger>
               <Avatar className="size-9">
