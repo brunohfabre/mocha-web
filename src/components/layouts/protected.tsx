@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 
-import LogoImage from '@/assets/logo.png'
+import LogoDark from '@/assets/logo-dark.png'
+import LogoLight from '@/assets/logo-light.png'
 import { api } from '@/lib/api'
 import { useAuthStore } from '@/stores/auth-store'
 import { useOrganizationStore } from '@/stores/organization-store'
+
+import { useTheme } from '../theme-provider'
 
 export function Protected() {
   const firstRenderRef = useRef(true)
@@ -16,6 +19,8 @@ export function Protected() {
   const setUser = useAuthStore((state) => state.setUser)
 
   const setOrganization = useOrganizationStore((state) => state.setOrganization)
+
+  const { theme } = useTheme()
 
   const [isLoading, setIsLoading] = useState(true)
 
@@ -50,7 +55,11 @@ export function Protected() {
   if (isLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
-        <img src={LogoImage} alt="Mocha" className="w-14 animate-bounce" />
+        <img
+          src={theme === 'dark' ? LogoDark : LogoLight}
+          alt="Mocha"
+          className="w-14 animate-bounce"
+        />
       </div>
     )
   }

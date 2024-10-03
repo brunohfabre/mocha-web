@@ -5,7 +5,9 @@ import { useNavigate } from 'react-router-dom'
 import { LoaderCircle } from 'lucide-react'
 import { z } from 'zod'
 
-import LogoImage from '@/assets/logo.png'
+import LogoDark from '@/assets/logo-dark.png'
+import LogoLight from '@/assets/logo-light.png'
+import { useTheme } from '@/components/theme-provider'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -24,6 +26,8 @@ export function SignIn() {
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
   })
+
+  const { theme } = useTheme()
 
   const [loading, setLoading] = useState(false)
 
@@ -49,7 +53,11 @@ export function SignIn() {
 
   return (
     <div className="mx-auto flex max-w-96 flex-1 flex-col justify-center gap-8">
-      <img src={LogoImage} alt="Mocha" className="w-10" />
+      <img
+        src={theme === 'dark' ? LogoDark : LogoLight}
+        alt="Mocha"
+        className="w-10"
+      />
 
       <h1 className="text-xl font-semibold">Sign in</h1>
 

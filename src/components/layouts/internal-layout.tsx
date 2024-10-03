@@ -2,14 +2,18 @@ import { Link, Outlet } from 'react-router-dom'
 
 import { LogOut } from 'lucide-react'
 
-import LogoImage from '@/assets/logo.png'
+import LogoDark from '@/assets/logo-dark.png'
+import LogoLight from '@/assets/logo-light.png'
 import { useAuthStore } from '@/stores/auth-store'
 
+import { useTheme } from '../theme-provider'
 import { Button } from '../ui/button'
 import { Separator } from '../ui/separator'
 
 export function InternalLayout() {
   const clearCredentials = useAuthStore((state) => state.clearCredentials)
+
+  const { theme } = useTheme()
 
   function handleSignOut() {
     clearCredentials()
@@ -19,7 +23,11 @@ export function InternalLayout() {
     <div className="flex h-screen w-full flex-col antialiased">
       <header className="flex items-center justify-between px-2">
         <Link className="flex size-[52px] items-center justify-center" to="/">
-          <img src={LogoImage} alt="Mocha" className="w-9" />
+          <img
+            src={theme === 'dark' ? LogoDark : LogoLight}
+            alt="Mocha"
+            className="w-9"
+          />
         </Link>
 
         <Button variant="outline" size="icon" onClick={handleSignOut}>
