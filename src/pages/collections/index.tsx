@@ -97,8 +97,8 @@ export function Collections() {
         collectionToUpdate={collectionToUpdate}
       />
 
-      <div className="flex flex-1 flex-col gap-4 p-4">
-        <header className="flex justify-between">
+      <div className="flex flex-1 flex-col">
+        <header className="flex h-[52px] items-center justify-between px-4">
           <p className="text-lg font-semibold">Collections</p>
 
           <Button type="button" onClick={() => setModalVisible(true)}>
@@ -109,7 +109,7 @@ export function Collections() {
         {data?.length === 0 ? (
           <Empty />
         ) : (
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-4 gap-2 p-4">
             {data?.map((item) => (
               <Card
                 key={item.id}

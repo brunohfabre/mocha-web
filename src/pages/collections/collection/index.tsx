@@ -1,4 +1,4 @@
-import { Outlet, useParams } from 'react-router-dom'
+import { Outlet, useLocation, useParams } from 'react-router-dom'
 
 import { LoaderCircle } from 'lucide-react'
 
@@ -10,6 +10,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Sidebar } from './sidebar'
 
 export function Collection() {
+  const location = useLocation()
   const { collectionId, requestId } = useParams<{
     collectionId: string
     requestId: string
@@ -44,7 +45,7 @@ export function Collection() {
 
       <Outlet />
 
-      {!requestId && (
+      {!requestId && !location.pathname.includes('environments') && (
         <div className="flex flex-1 items-center justify-center">
           <p className="text-sm">To start, select a request.</p>
         </div>
