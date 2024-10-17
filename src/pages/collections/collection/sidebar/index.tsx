@@ -239,8 +239,8 @@ export function Sidebar() {
         <Separator />
 
         <DropdownMenu>
-          <DropdownMenuTrigger asChild disabled>
-            <button className="flex h-[52px] items-center justify-between px-4 opacity-50 enabled:hover:bg-muted disabled:cursor-not-allowed">
+          <DropdownMenuTrigger asChild>
+            <button className="flex h-[52px] items-center justify-between px-4 hover:bg-muted">
               <span className="text-sm">No environment</span>
 
               <ChevronsUpDown className="size-4 text-neutral-500" />
