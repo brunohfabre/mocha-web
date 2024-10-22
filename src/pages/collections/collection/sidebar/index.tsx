@@ -38,10 +38,25 @@ export type Request = {
   params: any[]
 }
 
-export type Collection = {
+export type EnvironmentType = {
+  id: string
+  name: string
+  variables: Record<string, string>
+}
+
+export type VariableType = {
+  id: string
+  name: string
+}
+
+export type CollectionType = {
   id: string
   name: string
   requests: Request[]
+  environments: {
+    environments: EnvironmentType[]
+    variables: VariableType[]
+  }
 }
 
 export function Sidebar() {
@@ -60,7 +75,7 @@ export function Sidebar() {
   const [requestToRename, setRequestToRename] = useState<Request | null>(null)
 
   const queryClient = useQueryClient()
-  const collection = queryClient.getQueryData<Collection>([
+  const collection = queryClient.getQueryData<CollectionType>([
     'collections',
     collectionId,
   ])
@@ -76,7 +91,7 @@ export function Sidebar() {
 
       queryClient.setQueryData(
         ['collections', collectionId],
-        (prevState: Collection) => ({
+        (prevState: CollectionType) => ({
           ...prevState,
           requests: [...prevState.requests, response.data.request],
         }),
@@ -105,7 +120,7 @@ export function Sidebar() {
 
       queryClient.setQueryData(
         ['collections', collectionId],
-        (prevState: Collection) => ({
+        (prevState: CollectionType) => ({
           ...prevState,
           requests: prevState.requests.filter(
             (request) => !response.data.ids.includes(request.id),
@@ -250,10 +265,16 @@ export function Sidebar() {
           <DropdownMenuContent className="w-[calc(var(--radix-dropdown-menu-trigger-width)_-8px)]">
             <DropdownMenuItem>No environment</DropdownMenuItem>
 
-            <DropdownMenuItem className="flex items-center justify-between bg-muted">
-              <span>Local</span>
-              <Check className="size-3" />
-            </DropdownMenuItem>
+            {collection?.environments?.environments.map((environment) => (
+              <DropdownMenuItem
+                key={environment.id}
+                className="flex items-center justify-between bg-muted"
+              >
+                <span>Local</span>
+                <Check className="size-3" />
+              </DropdownMenuItem>
+            ))}
+
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleNavigateToEnvironments}>
               Manage environments
