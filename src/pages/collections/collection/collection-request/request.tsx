@@ -25,7 +25,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Editor } from '@monaco-editor/react'
 import { useQueryClient } from '@tanstack/react-query'
 
-import type { Collection, Request as RequestType } from '../sidebar'
+import type { CollectionType, Request as RequestType } from '../sidebar'
 import { updateLoadingAtom } from '../state'
 import { controller, loadingAtom, responsesAtom } from './state'
 
@@ -103,7 +103,7 @@ export function Request({ request }: RequestProps) {
 
       queryClient.setQueryData(
         ['collections', collectionId],
-        (prevState: Collection) => ({
+        (prevState: CollectionType) => ({
           ...prevState,
           requests: prevState.requests.map((item) =>
             item.id === requestId ? { ...item, ...data } : item,
@@ -122,7 +122,7 @@ export function Request({ request }: RequestProps) {
 
     queryClient.setQueryData(
       ['collections', collectionId],
-      (prevState: Collection) => ({
+      (prevState: CollectionType) => ({
         ...prevState,
         requests: prevState.requests.map((item) =>
           item.id === requestId ? { ...item, ...data } : item,

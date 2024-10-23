@@ -19,7 +19,7 @@ import { api } from '@/lib/api'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQueryClient } from '@tanstack/react-query'
 
-import type { Collection } from '.'
+import type { CollectionType } from '.'
 
 const formSchema = z.object({
   name: z.string().min(1),
@@ -68,7 +68,7 @@ export function CreateFolder({
 
       queryClient.setQueryData(
         ['collections', collectionId],
-        (prevState: Collection) => ({
+        (prevState: CollectionType) => ({
           ...prevState,
           requests: [...prevState.requests, response.data.request],
         }),

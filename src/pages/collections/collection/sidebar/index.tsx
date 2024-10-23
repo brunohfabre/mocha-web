@@ -54,8 +54,9 @@ export type CollectionType = {
   name: string
   requests: Request[]
   environments: {
-    environments: EnvironmentType[]
-    variables: VariableType[]
+    environments: { id: string; name: string }[]
+    variables: { id: string; name: string }[]
+    values: Record<string, string>
   }
 }
 
@@ -163,7 +164,10 @@ export function Sidebar() {
       />
 
       <div className="flex w-80 flex-col">
-        <div className="flex h-[52px] items-center justify-between px-4">
+        <div
+          className="flex h-[52px] items-center justify-between px-4"
+          onClick={() => navigate(`/collections/${collectionId}`)}
+        >
           <span className="text-sm font-semibold">{collection?.name}</span>
 
           {updateLoading && (

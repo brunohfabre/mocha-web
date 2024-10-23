@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import { Separator } from '@/components/ui/separator'
 import { useQueryClient } from '@tanstack/react-query'
 
-import type { Collection } from '../sidebar'
+import type { CollectionType } from '../sidebar'
 import { Request } from './request'
 import { Response } from './response'
 
@@ -15,7 +15,7 @@ export function CollectionRequest() {
 
   const queryClient = useQueryClient()
 
-  const collection = queryClient.getQueryData<Collection>([
+  const collection = queryClient.getQueryData<CollectionType>([
     'collections',
     collectionId,
   ])
